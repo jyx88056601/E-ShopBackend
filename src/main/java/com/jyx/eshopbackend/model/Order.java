@@ -2,12 +2,11 @@ package com.jyx.eshopbackend.model;
 
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "order") // 表名是 "orders"
+@Table(name = "order")
 public class Order {
 
     @Id
@@ -25,7 +24,7 @@ public class Order {
     private LocalDateTime orderDate;
 
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems;
 
     @ManyToOne
@@ -33,7 +32,7 @@ public class Order {
     private User user;
 
     @OneToOne
-    @JoinColumn(name = "payment_id")
+    @JoinColumn(name = "payment_id", unique = true)
     private Payment payment;
 
     @OneToOne
@@ -43,36 +42,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private OrderStatus orderStatus;
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getOrderNumber() {
-        return orderNumber;
-    }
-
-    public void setOrderNumber(String orderNumber) {
-        this.orderNumber = orderNumber;
-    }
-
-    public double getTotalAmount() {
-        return totalAmount;
-    }
-
-    public void setTotalAmount(double totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
-    }
-
     public User getUser() {
         return user;
     }

@@ -1,8 +1,9 @@
 package com.jyx.eshopbackend.model;
 
 public enum OrderStatus {
-    PENDING,
+    UNPAID,
     PAID,
+    SHIPPING,
     SHIPPED,
     COMPLETED,
     CANCELED

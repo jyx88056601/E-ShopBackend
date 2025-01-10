@@ -15,7 +15,7 @@ public class Payment {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "order_id", nullable = false)
+    @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
 
     private BigDecimal amount;

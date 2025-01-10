@@ -14,73 +14,22 @@ public class OrderItem {
 
     @ManyToOne
     @JoinColumn(name = "order_id", nullable = false)
-    private Order order;  // 关联的订单
+    private Order order;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
-    private Product product;  // 关联的商品
+    private Product product;
 
     @Column(nullable = false)
-    private int quantity;  // 商品数量
+    private int quantity;
 
     @Column(nullable = false)
-    private BigDecimal price;  // 商品单价
+    private BigDecimal price;
 
     @Column(nullable = false)
-    private BigDecimal totalPrice;  // 商品总价（单价 * 数量）
+    private BigDecimal totalPrice;
 
-    // Getter 和 Setter 方法
-    public Long getId() {
-        return id;
-    }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
 
-    public Order getOrder() {
-        return order;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
-    }
-
-    public Product getProduct() {
-        return product;
-    }
-
-    public void setProduct(Product product) {
-        this.product = product;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
-    }
-
-    // 计算总价：price * quantity
-    public void calculateTotalPrice() {
-        this.totalPrice = this.price.multiply(new BigDecimal(this.quantity));
-    }
 }
 

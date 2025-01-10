@@ -25,15 +25,12 @@ public class Product {
     @Column(nullable = false)
     private String category;
 
-    @Column(nullable = false)
+    @Column
     private String description;
 
     @Column(nullable = false)
     private LocalDateTime createdTime;
 
-    public Long getId() {
-        return id;
-    }
 
     public String getName() {
         return name;

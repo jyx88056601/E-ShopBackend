@@ -1,6 +1,9 @@
 package com.jyx.eshopbackend.model;
 
 import jakarta.persistence.*;
+
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "cart_item")
 public class CartItem {
@@ -12,13 +15,18 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
-    private Cart cart;
+    private Cart cart; // cart was defined by mappedBy = "cart" in Cart class
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
-    private Product product;  // 商品
+    private Product product;
 
-    private int quantity;  // 数量
+    private int quantity;
+
+    @Transient
+    public BigDecimal getItemTotalPrice() {
+        return product.getPrice().multiply(new BigDecimal(getQuantity()));
+    }
 
     public Long getId() {
         return id;
@@ -26,10 +34,6 @@ public class CartItem {
 
     public Cart getCart() {
         return cart;
-    }
-
-    public void setCart(Cart cart) {
-        this.cart = cart;
     }
 
     public Product getProduct() {
@@ -45,6 +49,6 @@ public class CartItem {
     }
 
     public void setQuantity(int quantity) {
-        this.quantity = quantity;
+        this.quantity = quantity >= 0 ?  quantity : this.quantity;
     }
 }

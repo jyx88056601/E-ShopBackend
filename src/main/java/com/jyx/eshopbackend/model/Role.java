@@ -2,5 +2,7 @@ package com.jyx.eshopbackend.model;
 
 public enum Role {
     ADMIN,
-    USER;
+    USER,
+    BUYER,
+    SELLER;
 }
