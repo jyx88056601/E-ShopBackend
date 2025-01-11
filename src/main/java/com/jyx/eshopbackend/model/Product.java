@@ -16,10 +16,10 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column(nullable = false )
     private BigDecimal price;
 
-    @Column(nullable = false)
+    @Column(nullable = false )
     private int stock;
 
     @Column(nullable = false)
