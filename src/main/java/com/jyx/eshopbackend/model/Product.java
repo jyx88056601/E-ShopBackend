@@ -6,20 +6,20 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "product")
+@Table(name = "products")
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "product_id")
     private Long id;
 
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, columnDefinition = "CHECK (price >= 0.0)")
+    @Column(nullable = false)
     private BigDecimal price;
 
-    @Column(nullable = false,columnDefinition = "CHECK (stock >= 0)")
+    @Column(nullable = false)
     private int stock;
 
     @Column(nullable = false)
