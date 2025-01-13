@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -57,7 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String username = DecodedJWT.getSubject();
             logger.info("Token decode with username : " + username);
             List<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority(DecodedJWT.getClaim("role").toString()));
+            String role = DecodedJWT.getClaim("role").asString();
+            authorities.add(new SimpleGrantedAuthority(role));
             jwtAuthenticationToken = new JwtAuthenticationToken(username,request.getHeader("username"), authorities);
         } catch (Exception e) {
             logger.info("Token can't be decoded");
@@ -65,16 +65,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throw new BadCredentialsException("Decoding token failed", e);
         }
 
-        Authentication authentication;
+
         try {
-             authentication =  jwtAuthenticationProvider.authenticate(jwtAuthenticationToken);
+             jwtAuthenticationToken =  (JwtAuthenticationToken) jwtAuthenticationProvider.authenticate(jwtAuthenticationToken);
         } catch (AuthenticationException e) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + e.getMessage());
             LoggerFactory.getLogger(this.getClass()).warn("Authentication failed for request: {}", request.getRequestURI());
             filterChain.doFilter(request, response);
             return;
         }
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        SecurityContextHolder.getContext().setAuthentication(jwtAuthenticationToken);
         filterChain.doFilter(request, response);
 
     }

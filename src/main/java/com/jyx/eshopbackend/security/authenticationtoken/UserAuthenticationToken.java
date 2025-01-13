@@ -8,8 +8,11 @@ import java.util.Collection;
 
 public class UserAuthenticationToken extends UsernamePasswordAuthenticationToken {
 
+    private final Collection<GrantedAuthority> authorities;
+
     public UserAuthenticationToken(UserPrincipal principal, Object credentials, Collection<GrantedAuthority> authorities) {
         super(principal, credentials, authorities);
+        this.authorities = authorities;
     }
 
 
@@ -20,7 +23,7 @@ public class UserAuthenticationToken extends UsernamePasswordAuthenticationToken
 
     @Override
     public Collection<GrantedAuthority> getAuthorities() {
-        return super.getAuthorities();
+        return this.authorities;
     }
 
 }

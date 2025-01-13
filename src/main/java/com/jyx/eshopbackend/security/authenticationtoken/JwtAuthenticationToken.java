@@ -15,6 +15,7 @@ public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken 
         super(username, token, authorities);
         this.username = String.valueOf(username);
         this.requestName = String.valueOf(token);
+        this.authorities = authorities;
     }
 
 

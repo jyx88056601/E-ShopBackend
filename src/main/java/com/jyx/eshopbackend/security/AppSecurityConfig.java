@@ -46,6 +46,7 @@ public class AppSecurityConfig {
                 .authorizeHttpRequests(
                         authorizeHttp -> {
                             authorizeHttp.requestMatchers(publicUrl.urls()).permitAll();
+                            authorizeHttp.requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN");
                             authorizeHttp.anyRequest().authenticated();
                         }
                 )
