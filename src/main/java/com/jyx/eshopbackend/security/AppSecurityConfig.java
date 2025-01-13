@@ -26,23 +26,26 @@ public class AppSecurityConfig {
 
     private final UserAuthenticationProvider userAuthenticationProvider;
 
-    public AppSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserAuthenticationFilter userAuthenticationFilter, JwtAuthenticationProvider jwtAuthenticationProvider, UserAuthenticationProvider userAuthenticationProvider) {
+    private final PublicUrl publicUrl;
+
+    public AppSecurityConfig(PublicUrl publicUrl, JwtAuthenticationFilter jwtAuthenticationFilter, UserAuthenticationFilter userAuthenticationFilter, JwtAuthenticationProvider jwtAuthenticationProvider, UserAuthenticationProvider userAuthenticationProvider) {
+        this.publicUrl = publicUrl;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userAuthenticationFilter = userAuthenticationFilter;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
         this.userAuthenticationProvider = userAuthenticationProvider;
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+// 限制分别来自 authorizeHttp
+        // 以及userAuthenticationFilter 的限制  两个都需要突破
+            //jwtAuthenticationFilter 却没事 因为check了token
         return http
                 .authorizeHttpRequests(
                         authorizeHttp -> {
-                            authorizeHttp.requestMatchers("/admin/**").hasRole("ADMIN");
-                            authorizeHttp.requestMatchers("/").permitAll();
-                            authorizeHttp.requestMatchers("/error").permitAll();
+                            authorizeHttp.requestMatchers(publicUrl.urls()).permitAll();
                             authorizeHttp.anyRequest().authenticated();
                         }
                 )
@@ -51,17 +54,19 @@ public class AppSecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, AuthenticationFilter.class)
-                .addFilterAfter(userAuthenticationFilter, AuthenticationFilter.class)
+                .addFilterAfter(userAuthenticationFilter, JwtAuthenticationFilter.class)
                 .build();
     }
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         var builder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        builder.authenticationProvider(userAuthenticationProvider);
-        builder.authenticationProvider(jwtAuthenticationProvider);
+        builder.authenticationProvider(userAuthenticationProvider)
+                .authenticationProvider(jwtAuthenticationProvider);
         return builder.build();
     }
+
+
 
 
     /*

@@ -1,19 +1,13 @@
 package com.jyx.eshopbackend.security.authenticationprovider;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jyx.eshopbackend.security.authenticationtoken.JwtAuthenticationToken;
-import com.jyx.eshopbackend.security.jwtservice.JwtUtil;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 
 // authenticationManager manages a list of providers(jwtAuthentication Provider, userAuthentication Provider etc.)
@@ -29,35 +23,20 @@ import java.util.Collection;
 // or return null, which means it can't pass the current verification, but we want to move on
 // or throw Exception, and terminate filter chain because the token is incorrect.
 
+@Primary
 @Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtAuthenticationProvider.class);
-
-    private final JwtUtil jwt;
-
-    public JwtAuthenticationProvider(JwtUtil jwt) {
-        this.jwt = jwt;
-    }
-
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+        logger.info("JwtAuthenticationProvider.authenticate...");
         JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
-        String requestName = String.valueOf(jwtAuthenticationToken.getUsername());
-        try {
-            DecodedJWT DecodedJWT = jwt.decodeToken(String.valueOf(jwtAuthenticationToken.getToken()));
-            String username = DecodedJWT.getSubject();
-            Collection<GrantedAuthority> authorities = new ArrayList<>();
-            authorities.add(new SimpleGrantedAuthority(DecodedJWT.getClaim("role").toString()));
-
-            if (!username.equals(requestName)) {
+        if (!jwtAuthenticationToken.getUsername().equals(jwtAuthenticationToken.getRequestName()) ) {
+                logger.info("Token is invalid");
                 throw new BadCredentialsException("username does not match");
-            }
-            ((JwtAuthenticationToken) authentication).setAuthorities(authorities);
-            authentication.setAuthenticated(true);
-            return authentication;
-        } catch (Exception e) {
-            throw new BadCredentialsException("Decoding token failed", e);
         }
+        logger.info("JWT authenticated, token is valid");
+        return authentication;
     }
 
     @Override

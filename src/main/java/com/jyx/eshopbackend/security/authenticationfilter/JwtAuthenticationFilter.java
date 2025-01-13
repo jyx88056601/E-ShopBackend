@@ -1,29 +1,40 @@
 package com.jyx.eshopbackend.security.authenticationfilter;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jyx.eshopbackend.security.authenticationprovider.JwtAuthenticationProvider;
 import com.jyx.eshopbackend.security.authenticationtoken.JwtAuthenticationToken;
+import com.jyx.eshopbackend.security.jwtservice.JwtUtil;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
+    private final JwtUtil jwt;
     private final JwtAuthenticationProvider jwtAuthenticationProvider;
 
-    public JwtAuthenticationFilter(JwtAuthenticationProvider jwtAuthenticationProvider) {
+    public JwtAuthenticationFilter(JwtUtil jwt, JwtAuthenticationProvider jwtAuthenticationProvider) {
+        this.jwt = jwt;
         this.jwtAuthenticationProvider = jwtAuthenticationProvider;
     }
 
@@ -32,41 +43,40 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     @Nonnull HttpServletResponse response,
                                     @Nonnull FilterChain filterChain) throws ServletException, IOException {
 
-        Optional<String> token = extractTokenFromRequest(request);
 
-        // 如果没有 token，直接进入下一个 filter 进行账户密码验证
+        Optional<String> token = extractTokenFromRequest(request);
         if (token.isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        JwtAuthenticationToken authentication;
+        JwtAuthenticationToken jwtAuthenticationToken;
         try {
-            // 使用 token 进行认证
-            authentication = (JwtAuthenticationToken) jwtAuthenticationProvider.authenticate(new JwtAuthenticationToken(request.getHeader("username"), token.get()));
-        } catch (AuthenticationException e) {
-            // 认证失败时返回 401 错误并记录日志
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + e.getMessage());
-            LoggerFactory.getLogger(this.getClass()).warn("Authentication failed for request: {}", request.getRequestURI());
-            return;
+            logger.info("Decoding token");
+            DecodedJWT DecodedJWT = jwt.decodeToken(token.get());
+            String username = DecodedJWT.getSubject();
+            logger.info("Token decode with username : " + username);
+            List<GrantedAuthority> authorities = new ArrayList<>();
+            authorities.add(new SimpleGrantedAuthority(DecodedJWT.getClaim("role").toString()));
+            jwtAuthenticationToken = new JwtAuthenticationToken(username,request.getHeader("username"), authorities);
+        } catch (Exception e) {
+            logger.info("Token can't be decoded");
+            filterChain.doFilter(request, response);
+            throw new BadCredentialsException("Decoding token failed", e);
         }
 
-        // 如果认证成功，设置 SecurityContext，并继续过滤链
-        if (authentication.isAuthenticated()) {
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
+        Authentication authentication;
+        try {
+             authentication =  jwtAuthenticationProvider.authenticate(jwtAuthenticationToken);
+        } catch (AuthenticationException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication failed: " + e.getMessage());
+            LoggerFactory.getLogger(this.getClass()).warn("Authentication failed for request: {}", request.getRequestURI());
             filterChain.doFilter(request, response);
             return;
         }
-
-        // 记录请求处理时间
-        long startTime = System.currentTimeMillis();
+        SecurityContextHolder.getContext().setAuthentication(authentication);
         filterChain.doFilter(request, response);
-        long duration = System.currentTimeMillis() - startTime;
 
-        // 打印日志：请求路径，处理时间，以及客户端 IP
-        String clientIp = request.getRemoteAddr();
-        LoggerFactory.getLogger(this.getClass()).info("Request URI: {} | Duration: {} ms | Client IP: {}", request.getRequestURI(), duration, clientIp);
     }
 
 
