@@ -28,6 +28,7 @@ public class JwtUtil {
         return JWT.create()
                 .withSubject(userPrincipal.getUsername())
                 .withClaim("role", role.name())
+                .withClaim("time",Instant.now())
                 .withIssuedAt(Instant.now())
                 .withExpiresAt(Instant.now().plus(Duration.of(30, ChronoUnit.MINUTES)))
                 .sign(Algorithm.HMAC256(jwtConfig.getSecretKey()));

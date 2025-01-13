@@ -17,7 +17,7 @@ public class EShopBackendApplicationConfig {
 
     @Bean
     public PublicUrl publicUrl() {
-        return new PublicUrl(new String[]{"/", "/error", "/signup"});
+        return new PublicUrl(new String[]{"/", "/error", "/signup", "/logout"});
     }
 
 }

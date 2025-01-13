@@ -6,10 +6,7 @@ import com.jyx.eshopbackend.security.UserPrincipal;
 import com.jyx.eshopbackend.security.authenticationprovider.UserAuthenticationProvider;
 import com.jyx.eshopbackend.security.authenticationtoken.UserAuthenticationToken;
 import com.jyx.eshopbackend.security.jwtservice.JwtUtil;
-import com.jyx.eshopbackend.service.UserAccountRemovalService;
-import com.jyx.eshopbackend.service.UserPrincipalService;
-import com.jyx.eshopbackend.service.UserSignInService;
-import com.jyx.eshopbackend.service.UserSignUpService;
+import com.jyx.eshopbackend.service.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -39,7 +36,7 @@ public class Controller {
 
     private final UserAccountRemovalService userAccountRemovalService;
 
-    public Controller(UserSignUpService userSignUpService, UserSignInService userSignInService, UserDetailsService userDetailsService, UserAuthenticationProvider userAuthenticationProvider, JwtUtil jwt, UserPrincipalService userPrincipalService, UserAccountRemovalService userAccountRemovalService) {
+    public Controller(UserSignUpService userSignUpService, UserSignInService userSignInService, UserDetailsService userDetailsService, UserAuthenticationProvider userAuthenticationProvider, JwtUtil jwt, UserPrincipalService userPrincipalService, UserAccountRemovalService userAccountRemovalService ) {
         this.userSignUpService = userSignUpService;
         this.userSignInService = userSignInService;
         this.jwt = jwt;

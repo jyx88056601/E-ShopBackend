@@ -43,7 +43,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@Nonnull HttpServletRequest request,
                                     @Nonnull HttpServletResponse response,
                                     @Nonnull FilterChain filterChain) throws ServletException, IOException {
-
+        logger.info(request.getRequestURI());
         for(String url : publicUrl.urls()) {
             if (request.getRequestURI().equals(url)) {
                 logger.info(url + " is permitted by default, move to the next filter");
@@ -51,7 +51,9 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
         }
-        if (SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+
+
+        if (SecurityContextHolder.getContext().getAuthentication() != null && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
             filterChain.doFilter(request, response);
             return;
         }

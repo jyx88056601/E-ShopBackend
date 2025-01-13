@@ -84,7 +84,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = request.getHeader("Authorization");
         if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
-            logger.debug("Extracted JWT: {}" + token);
             return Optional.of(token.substring(7));
         }
         logger.debug("Authorization header missing or invalid");
