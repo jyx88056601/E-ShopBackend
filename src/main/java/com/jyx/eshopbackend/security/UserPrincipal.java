@@ -2,7 +2,6 @@ package com.jyx.eshopbackend.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 
 import java.util.Collection;
 
@@ -11,13 +10,13 @@ public class UserPrincipal implements UserDetails {
     private final Long id;
     private final String username;
     private final String password;
-    private final Collection<? extends GrantedAuthority> authorities;
+    private final Collection<GrantedAuthority> authorities;
 
     private final boolean isActive;
 
     // authentication
     public UserPrincipal(Long id, String username, String password,
-                         Collection<? extends GrantedAuthority> authorities,
+                         Collection<GrantedAuthority> authorities,
                          boolean isActive) {
         this.id = id;
         this.username = username;
@@ -28,7 +27,7 @@ public class UserPrincipal implements UserDetails {
 
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public Collection<GrantedAuthority> getAuthorities() {
         return authorities;
     }
 

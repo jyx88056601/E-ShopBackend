@@ -8,21 +8,22 @@ import java.util.Collection;
 public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken {
 
     private final String username;
-    private final String token;
+    private final String requestName;
     private Collection<GrantedAuthority> authorities;
 
-    public JwtAuthenticationToken(Object username, Object token ) {
-        super(username, token);
+    public JwtAuthenticationToken(Object username, Object token, Collection<GrantedAuthority> authorities) {
+        super(username, token, authorities);
         this.username = String.valueOf(username);
-        this.token = String.valueOf(token);
+        this.requestName = String.valueOf(token);
     }
+
 
     public String getUsername() {
         return username;
     }
 
-    public String getToken() {
-        return token;
+    public String getRequestName() {
+        return requestName;
     }
 
     @Override
