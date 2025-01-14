@@ -4,6 +4,9 @@ import com.jyx.eshopbackend.security.authenticationfilter.JwtAuthenticationFilte
 import com.jyx.eshopbackend.security.authenticationfilter.UserAuthenticationFilter;
 import com.jyx.eshopbackend.security.authenticationprovider.JwtAuthenticationProvider;
 import com.jyx.eshopbackend.security.authenticationprovider.UserAuthenticationProvider;
+import org.apache.catalina.security.SecurityConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,6 +21,7 @@ import org.springframework.security.web.authentication.AuthenticationFilter;
 @Configuration
 @EnableWebSecurity
 public class AppSecurityConfig {
+
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     private final UserAuthenticationFilter userAuthenticationFilter;
@@ -38,6 +42,7 @@ public class AppSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
 // 限制分别来自 authorizeHttp
         // 以及userAuthenticationFilter 的限制  两个都需要突破
@@ -45,8 +50,11 @@ public class AppSecurityConfig {
         return http
                 .authorizeHttpRequests(
                         authorizeHttp -> {
+                            logger.info("Public URLs: {}", String.join(", ", publicUrl.urls()));
                             authorizeHttp.requestMatchers(publicUrl.urls()).permitAll();
+                            logger.info("Configuring /admin/** path to require ROLE_ADMIN authority");
                             authorizeHttp.requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN");
+                            logger.info("All other requests will require authentication");
                             authorizeHttp.anyRequest().authenticated();
                         }
                 )
@@ -57,6 +65,7 @@ public class AppSecurityConfig {
                 .addFilterBefore(jwtAuthenticationFilter, AuthenticationFilter.class)
                 .addFilterAfter(userAuthenticationFilter, JwtAuthenticationFilter.class)
                 .build();
+
     }
 
     @Bean

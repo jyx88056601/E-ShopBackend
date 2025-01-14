@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -31,7 +30,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
    private final PublicUrl publicUrl;
 
-    public UserAuthenticationFilter(PublicUrl publicUrl, UserDetailsService userDetailsService, UserPrincipalService userPrincipalService, UserAuthenticationProvider userAuthenticationProvider) {
+    public UserAuthenticationFilter(PublicUrl publicUrl, UserPrincipalService userPrincipalService, UserAuthenticationProvider userAuthenticationProvider) {
         this.publicUrl = publicUrl;
         this.userPrincipalService = userPrincipalService;
         this.userAuthenticationProvider = userAuthenticationProvider;
@@ -54,10 +53,11 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
 
         if (SecurityContextHolder.getContext().getAuthentication() != null && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
+            logger.info("JWT authentication has been set to true");
             filterChain.doFilter(request, response);
             return;
         }
-
+        logger.info("Starting user-password matching...");
         UserPrincipal userPrincipal;
         try {
             String username = request.getHeader("username");
