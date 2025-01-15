@@ -30,12 +30,16 @@ public class AdminController {
 
     @GetMapping("/")
     public String administrationPage() {
+        logger.info("/admin/");
+        logger.info("AdminController.class: administrationPage()");
         return "Admin-panel";
     }
 
     // user control
     @GetMapping("/display-all-users")
     public ResponseEntity<Object> displayAllData(){
+        logger.info("/admin/display-all-users");
+        logger.info("AdminController.class: displayAllData()");
         List<User> users = adminService.fetchAllUsers();
         if(users.isEmpty()) {
             return  ResponseEntity.ok("No users in the database");
@@ -46,17 +50,20 @@ public class AdminController {
         }
         return ResponseEntity.ok(userDTOS);
        // return ResponseEntity.ok(Map.of("status","success","Users:", userDTOS));
-
     }
 
     @DeleteMapping("/delete-all-users")
     public ResponseEntity<String> removeAllUsers(){
+        logger.info("/admin/delete-all-users");
+        logger.info("AdminController.class: removeAllUsers()");
         adminService.removeAllUsers();
         return ResponseEntity.ok("All users have been removed from database");
     }
 
     @DeleteMapping("/delete-user/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
+        logger.info("/admin//delete-user/" + username);
+        logger.info("AdminController.class: deleteUser()");
         // ex: localhost:8080/admin/delete-user/username
         Optional<String> deletedUser = adminService.removeUserByUsername(username);
         return deletedUser.map(target -> ResponseEntity.ok("User with username " + target + " deleted successfully.")).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -66,6 +73,7 @@ public class AdminController {
     @PutMapping("/update-user")
     public ResponseEntity<Object> updateUser(@RequestBody UserUpdateDTO userUpdateDTO)  {
         logger.info("/update-user/"+userUpdateDTO.getUsername());
+        logger.info("AdminController.class: updateUser()");
         User updateUser;
         try {
             updateUser = adminService.updateUser(userUpdateDTO);
@@ -85,6 +93,8 @@ public class AdminController {
 
     @PutMapping("/set-up-activity/{username}")
     public ResponseEntity<String> toggleActivity(@PathVariable String username) {
+        logger.info("//set-up-activity" + username);
+        logger.info("AdminController.class: toggleActivity()");
            return  ResponseEntity.ok(adminService.toggleUserActivity(username));
     }
 
@@ -93,6 +103,7 @@ public class AdminController {
     @GetMapping("/user/{username}/orders")
     public ResponseEntity<Object> findOrdersByUsername(@PathVariable String username) {
         logger.info("/admin/user/"+username+"/orders");
+        logger.info("AdminController.class: findOrdersByUsername()");
         Optional<List<Order>> orderList = adminService.findOrdersByUsername(username);
         List<OrderDTO> orderDTOS =  new ArrayList<>();
         if (orderList.isEmpty()) return ResponseEntity.ok(Map.of("status","Empty list","data",orderList));
@@ -101,7 +112,4 @@ public class AdminController {
        }
         return ResponseEntity.ok(Map.of("status","success","data",orderDTOS));
     }
-
-
-
 }
