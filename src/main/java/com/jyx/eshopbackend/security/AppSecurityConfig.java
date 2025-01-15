@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.AuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+// disable basic auth
 public class AppSecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -61,11 +62,9 @@ public class AppSecurityConfig {
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .formLogin(AbstractHttpConfigurer::disable)
                 .addFilterBefore(jwtAuthenticationFilter, AuthenticationFilter.class)
                 .addFilterAfter(userAuthenticationFilter, JwtAuthenticationFilter.class)
                 .build();
-
     }
 
     @Bean

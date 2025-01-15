@@ -1,5 +1,6 @@
 package com.jyx.eshopbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
+    @JsonBackReference
     private Cart cart; // cart was defined by mappedBy = "cart" in Cart class
 
     @ManyToOne

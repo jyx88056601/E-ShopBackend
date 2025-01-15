@@ -1,15 +1,16 @@
 package com.jyx.eshopbackend.presentation;
 
-import com.jyx.eshopbackend.dto.LoginDTO;
-import com.jyx.eshopbackend.dto.UserDTO;
-import com.jyx.eshopbackend.security.UserPrincipal;
+import com.jyx.eshopbackend.dto.UserLoginDTO;
+import com.jyx.eshopbackend.dto.UserResponseDTO;
+import com.jyx.eshopbackend.dto.UserSignupDTO;
 import com.jyx.eshopbackend.security.authenticationprovider.UserAuthenticationProvider;
-import com.jyx.eshopbackend.security.authenticationtoken.UserAuthenticationToken;
 import com.jyx.eshopbackend.security.jwtservice.JwtUtil;
-import com.jyx.eshopbackend.service.*;
+import com.jyx.eshopbackend.service.UserAccountRemovalService;
+import com.jyx.eshopbackend.service.UserPrincipalService;
+import com.jyx.eshopbackend.service.UserSignInService;
+import com.jyx.eshopbackend.service.UserSignUpService;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,9 +51,9 @@ public class Controller {
     }
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<String> signup(@RequestBody UserSignupDTO userSignupDTO) {
         logger.info("/signup API");
-            Optional<UserDTO> registeredUser = userSignUpService.registerUser(userDTO);
+            Optional<UserResponseDTO> registeredUser = userSignUpService.registerUser(userSignupDTO);
             if (registeredUser.isEmpty()) {
                 logger.info("registration failed");
                 return ResponseEntity.badRequest().body("User already exists, please log in");
@@ -62,17 +63,9 @@ public class Controller {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody LoginDTO loginDTO) {
-        logger.info("/login API");
-        UserPrincipal userPrincipal = (UserPrincipal) userPrincipalService.loadUserByUsername(loginDTO.getUsername());
-        UserAuthenticationToken userAuthenticationToken = new UserAuthenticationToken(userPrincipal, loginDTO.getPassword(),userPrincipal.getAuthorities());
-        Authentication authentication = userSignInService.login(userAuthenticationToken);
-        if(authentication.isAuthenticated()) {
-            logger.info("Authenticated and return jwt token");
-            return ResponseEntity.ok(jwt.generateToken((UserPrincipal) authentication.getPrincipal()));
-        }
-        logger.info("Authentication failed");
-        return ResponseEntity.badRequest().body("Failed to log in ");
+    public ResponseEntity<String> login() {
+        // username and password are correct then jwt token should be return to user
+        return ResponseEntity.ok(userSignInService.generateToken());
     }
 
     @GetMapping("/auth")
@@ -81,8 +74,8 @@ public class Controller {
     }
 
     @PostMapping("/remove-account")
-    public ResponseEntity<String> removeAccount(@RequestBody LoginDTO loginDTO) {
-        Optional<String> result = userAccountRemovalService.removeAccount(loginDTO);
-        return result.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().body("No account in database that has username : " + loginDTO.getUsername()));
+    public ResponseEntity<String> removeAccount(@RequestBody UserLoginDTO userLoginDTO) {
+        Optional<String> result = userAccountRemovalService.removeAccount(userLoginDTO);
+        return result.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().body("No account in database that has username : " + userLoginDTO.getUsername()));
     }
 }

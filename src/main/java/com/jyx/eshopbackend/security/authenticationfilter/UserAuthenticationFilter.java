@@ -60,7 +60,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
         logger.info("Starting user-password matching...");
         UserPrincipal userPrincipal;
         try {
-            String username = request.getHeader("username");
+            String username = request.getParameter("username");
             if (username == null) {
                 logger.info("UserAuthenticationFilter: Username is missing");
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Username is missing");
@@ -68,6 +68,16 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
             }
             userPrincipal = (UserPrincipal) userPrincipalService.loadUserByUsername(username);
             logger.info("find user from database : " + userPrincipal.getUsername());
+            boolean isAdmin = userPrincipal.getAuthorities().stream()
+                    .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
+               if(isAdmin) {
+                   logger.info("Admin account");
+               }
+            if (!isAdmin && !userPrincipal.isAccountNonLocked()) {
+                logger.info("Account is locked");
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Account is locked");
+                return;
+            }
         } catch (UsernameNotFoundException e) {
            logger.error("User not found");
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Username not found: " + e.getMessage());
@@ -76,7 +86,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
         UserAuthenticationToken authentication;
         try {
-            String password = request.getHeader("password");
+            String password = request.getParameter("password");
             if (password == null) {
                 logger.info("Password is missing");
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Password is missing");
@@ -85,7 +95,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
             UserAuthenticationToken userAuthenticationToken = new UserAuthenticationToken(userPrincipal, password, userPrincipal.getAuthorities());
             authentication = (UserAuthenticationToken) userAuthenticationProvider.authenticate(userAuthenticationToken);
         } catch (BadCredentialsException e) {
-            logger.error("Bad credentials for username: {} for request: {}", request.getHeader("username"), request.getRequestURI(), e);
+            logger.error("Bad credentials for username: {} for request: {}", request.getParameter("username"), request.getRequestURI(), e);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Bad credentials: " + e.getMessage());
             return;
         }
