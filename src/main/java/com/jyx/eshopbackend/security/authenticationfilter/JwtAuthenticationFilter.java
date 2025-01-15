@@ -60,7 +60,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authorities.add(new SimpleGrantedAuthority(role));
             jwtAuthenticationToken = new JwtAuthenticationToken(username,request.getHeader("username"), authorities);
         } catch (Exception e) {
-            logger.info("Token can't be decoded");
+            logger.info("Token can't be decoded " + e.getMessage());
             filterChain.doFilter(request, response);
             throw new BadCredentialsException("Decoding token failed", e);
         }

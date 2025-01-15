@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+// Find user from database by username and convert the user object to Principal object for Authentication purpose
 @Service
 public class UserPrincipalService implements UserDetailsService {
 

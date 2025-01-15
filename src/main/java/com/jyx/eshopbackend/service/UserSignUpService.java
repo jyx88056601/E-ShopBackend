@@ -1,6 +1,7 @@
 package com.jyx.eshopbackend.service;
 
-import com.jyx.eshopbackend.dto.UserDTO;
+import com.jyx.eshopbackend.dto.UserSignupDTO;
+import com.jyx.eshopbackend.dto.UserResponseDTO;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.UserRepository;
 import org.slf4j.LoggerFactory;
@@ -23,21 +24,21 @@ public class UserSignUpService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public Optional<UserDTO> registerUser(UserDTO userDTO) {
+    public Optional<UserResponseDTO> registerUser(UserSignupDTO userSignupDTO) {
         logger.info("UserSignUpService.registerUser");
-        if (userRepository.existsByUsername(userDTO.getUsername()) || userRepository.existsByEmail(userDTO.getEmail())) {
+        if (userRepository.existsByUsername(userSignupDTO.getUsername()) || userRepository.existsByEmail(userSignupDTO.getEmail())) {
             logger.info("found same user in database");
             return Optional.empty();
         }
 
         User user = new User();
-        user.setUsername(userDTO.getUsername());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        user.setEmail(userDTO.getEmail());
-        user.setPhoneNumber(userDTO.getPhoneNumber());
-        userDTO.setPassword(user.getPassword());
-        user.setRole(userDTO.getRole());
+        user.setUsername(userSignupDTO.getUsername());
+        user.setPassword(passwordEncoder.encode(userSignupDTO.getPassword()));
+        user.setEmail(userSignupDTO.getEmail());
+        user.setPhoneNumber(userSignupDTO.getPhoneNumber());
+        user.setRole(userSignupDTO.getRole());
+        user.setActive(true);
         userRepository.save(user);
-        return Optional.of(userDTO);
+        return Optional.of(new UserResponseDTO(user));
     }
  }
