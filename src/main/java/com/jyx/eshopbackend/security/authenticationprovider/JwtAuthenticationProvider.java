@@ -2,7 +2,6 @@ package com.jyx.eshopbackend.security.authenticationprovider;
 
 import com.jyx.eshopbackend.security.authenticationtoken.JwtAuthenticationToken;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Primary;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Component;
 // or return null, which means it can't pass the current verification, but we want to move on
 // or throw Exception, and terminate filter chain because the token is incorrect.
 
-@Primary
 @Component
 public class JwtAuthenticationProvider implements AuthenticationProvider {
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(JwtAuthenticationProvider.class);

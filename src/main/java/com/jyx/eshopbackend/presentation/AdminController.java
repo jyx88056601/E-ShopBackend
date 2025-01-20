@@ -29,10 +29,10 @@ public class AdminController {
     }
 
     @GetMapping("/")
-    public String administrationPage() {
+    public ResponseEntity<Object> administrationPage() {
         logger.info("/admin/");
         logger.info("AdminController.class: administrationPage()");
-        return "Admin-panel";
+        return ResponseEntity.ok("Admin-panel");
     }
 
     // user control
@@ -40,64 +40,75 @@ public class AdminController {
     public ResponseEntity<Object> displayAllData(){
         logger.info("/admin/display-all-users");
         logger.info("AdminController.class: displayAllData()");
-        List<User> users = adminService.fetchAllUsers();
+        Optional<List<User>> users = adminService.fetchAllUsers();
         if(users.isEmpty()) {
-            return  ResponseEntity.ok("No users in the database");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         List<UserResponseDTO> userDTOS = new ArrayList<>();
-        for(var user : users) {
+        for(var user : users.get()) {
             userDTOS.add(new UserResponseDTO(user));
         }
-        return ResponseEntity.ok(userDTOS);
-       // return ResponseEntity.ok(Map.of("status","success","Users:", userDTOS));
+        return ResponseEntity.ok(Map.of("status",HttpStatus.OK,"data", userDTOS));
     }
 
     @DeleteMapping("/delete-all-users")
     public ResponseEntity<String> removeAllUsers(){
         logger.info("/admin/delete-all-users");
         logger.info("AdminController.class: removeAllUsers()");
-        adminService.removeAllUsers();
-        return ResponseEntity.ok("All users have been removed from database");
+        return ResponseEntity.status(HttpStatus.OK).body(adminService.removeAllUsers());
     }
 
     @DeleteMapping("/delete-user/{username}")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
-        logger.info("/admin//delete-user/" + username);
+        logger.info("/admin/delete-user/" + username);
         logger.info("AdminController.class: deleteUser()");
         // ex: localhost:8080/admin/delete-user/username
-        Optional<String> deletedUser = adminService.removeUserByUsername(username);
-        return deletedUser.map(target -> ResponseEntity.ok("User with username " + target + " deleted successfully.")).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("User with username " + username + " not found."));
+        Optional<String> response;
+        try {
+            response = adminService.removeUserByUsername(username);
+        } catch (Exception e) {
+            if (e instanceof UsernameNotFoundException) {
+                logger.info("User not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            }
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(response.get());
     }
+
 
     @PutMapping("/update-user")
     public ResponseEntity<Object> updateUser(@RequestBody UserUpdateDTO userUpdateDTO)  {
         logger.info("/update-user/"+userUpdateDTO.getUsername());
         logger.info("AdminController.class: updateUser()");
-        User updateUser;
+        Optional<UserResponseDTO> updateUser;
         try {
             updateUser = adminService.updateUser(userUpdateDTO);
         } catch (Exception e) {
             if (e instanceof UsernameNotFoundException) {
-                return ResponseEntity.badRequest().body("Invalid user update data.");
+                logger.info("User not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
             } else if (e instanceof PasswordNotMatchException) {
-                return ResponseEntity.badRequest().body("Original password is incorrect.");
+                logger.info("Original password is incorrect");
+                return ResponseEntity.badRequest().body(e.getMessage());
             } else {
                 logger.error("unexpected error from AdminController.class: updateUser()");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("AdminController.class: updateUser()");
             }
         }
-        return ResponseEntity.ok(Map.of("status","success","data",new UserResponseDTO(updateUser)));
+        logger.info("user info has been updated");
+        return ResponseEntity.ok(Map.of("status", HttpStatus.OK,"data",updateUser.get()));
     }
 
 
     @PutMapping("/set-up-activity/{username}")
     public ResponseEntity<String> toggleActivity(@PathVariable String username) {
-        logger.info("//set-up-activity" + username);
+        logger.info("/set-up-activity" + username);
         logger.info("AdminController.class: toggleActivity()");
-           return  ResponseEntity.ok(adminService.toggleUserActivity(username));
+        Optional<String> response = adminService.toggleUserActivity(username);
+        return response.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
-
 
     // order control
     @GetMapping("/user/{username}/orders")
@@ -106,10 +117,17 @@ public class AdminController {
         logger.info("AdminController.class: findOrdersByUsername()");
         Optional<List<Order>> orderList = adminService.findOrdersByUsername(username);
         List<OrderDTO> orderDTOS =  new ArrayList<>();
-        if (orderList.isEmpty()) return ResponseEntity.ok(Map.of("status","Empty list","data",orderList));
+        if (orderList.isEmpty()) return ResponseEntity.noContent().build();
+//                ResponseEntity.ok(Map.of("status",HttpStatus.,"data", orderList));
        for(Order order : orderList.get()) {
           orderDTOS.add(new OrderDTO(order));
        }
-        return ResponseEntity.ok(Map.of("status","success","data",orderDTOS));
+        return ResponseEntity.ok(Map.of("status", HttpStatus.OK,"data",orderDTOS));
+//        HttpHeaders headers = new HttpHeaders();
+//        // 总条目数
+//        headers.add("X-Total-Count", "100");
+//        // 调试信息
+//        headers.add("Debug-Info", "Processed in 25ms");
+//       return ResponseEntity.status(HttpStatus.OK).headers(headers).body(orderDTOS);
     }
 }

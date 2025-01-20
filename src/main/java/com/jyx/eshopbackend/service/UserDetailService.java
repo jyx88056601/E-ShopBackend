@@ -14,11 +14,11 @@ import java.util.List;
 
 // Find user from database by username and convert the user object to Principal object for Authentication purpose
 @Service
-public class UserPrincipalService implements UserDetailsService {
+public class UserDetailService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    public UserPrincipalService(UserRepository userRepository) {
+    public UserDetailService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
     @Override

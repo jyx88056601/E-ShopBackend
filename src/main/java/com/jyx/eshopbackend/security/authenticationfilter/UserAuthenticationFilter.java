@@ -4,7 +4,7 @@ import com.jyx.eshopbackend.security.PublicUrl;
 import com.jyx.eshopbackend.security.UserPrincipal;
 import com.jyx.eshopbackend.security.authenticationprovider.UserAuthenticationProvider;
 import com.jyx.eshopbackend.security.authenticationtoken.UserAuthenticationToken;
-import com.jyx.eshopbackend.service.UserPrincipalService;
+import com.jyx.eshopbackend.service.UserDetailService;
 import jakarta.annotation.Nonnull;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -24,15 +24,15 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(UserAuthenticationFilter.class);
 
-   private final UserPrincipalService userPrincipalService;
+   private final UserDetailService userDetailService;
 
    private final UserAuthenticationProvider userAuthenticationProvider;
 
    private final PublicUrl publicUrl;
 
-    public UserAuthenticationFilter(PublicUrl publicUrl, UserPrincipalService userPrincipalService, UserAuthenticationProvider userAuthenticationProvider) {
+    public UserAuthenticationFilter(PublicUrl publicUrl, UserDetailService userDetailService, UserAuthenticationProvider userAuthenticationProvider) {
         this.publicUrl = publicUrl;
-        this.userPrincipalService = userPrincipalService;
+        this.userDetailService = userDetailService;
         this.userAuthenticationProvider = userAuthenticationProvider;
     }
 
@@ -61,12 +61,12 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
         UserPrincipal userPrincipal;
         try {
             String username = request.getParameter("username");
-            if (username == null) {
+            if (username.isEmpty()) {
                 logger.info("UserAuthenticationFilter: Username is missing");
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Username is missing");
                 return;
             }
-            userPrincipal = (UserPrincipal) userPrincipalService.loadUserByUsername(username);
+            userPrincipal = (UserPrincipal) userDetailService.loadUserByUsername(username);
             logger.info("find user from database : " + userPrincipal.getUsername());
             boolean isAdmin = userPrincipal.getAuthorities().stream()
                     .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_ADMIN"));
@@ -87,7 +87,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
         UserAuthenticationToken authentication;
         try {
             String password = request.getParameter("password");
-            if (password == null) {
+            if (password.isEmpty()) {
                 logger.info("Password is missing");
                 response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Password is missing");
                 return;

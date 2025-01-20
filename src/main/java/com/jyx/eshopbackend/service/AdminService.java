@@ -1,12 +1,13 @@
 package com.jyx.eshopbackend.service;
 
+import com.jyx.eshopbackend.dto.UserResponseDTO;
 import com.jyx.eshopbackend.dto.UserUpdateDTO;
 import com.jyx.eshopbackend.exception.PasswordNotMatchException;
+import com.jyx.eshopbackend.exception.UserDeletionFailedException;
 import com.jyx.eshopbackend.model.Order;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.OrderRepository;
 import com.jyx.eshopbackend.persistence.UserRepository;
-import org.slf4j.LoggerFactory;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,6 @@ import java.util.Optional;
 
 @Service
 public class AdminService {
-
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AdminService.class);
-
     private final UserService userService;
     private final UserRepository userRepository;
     private final OrderRepository orderRepository;
@@ -30,11 +28,9 @@ public class AdminService {
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.passwordEncoder = passwordEncoder;
-        logger.info("Admin service starts");
     }
 
     public Optional<List<Order>> findOrdersByUsername(String username) {
-        logger.info("Admin service: find orders that belong to user : " + username);
         Optional<Long> id = userService.findUserIdByUsername(username);
         if(id.isEmpty()) {
             return Optional.empty();
@@ -43,51 +39,58 @@ public class AdminService {
     }
 
 
-    public void removeAllUsers(){
-        logger.info("Admin service: removeAllUsers()");
+    public String removeAllUsers() {
         userRepository.deleteAll();
+        return "All users have been removed";
     }
 
-    public Optional<String> removeUserByUsername(String username) {
-        logger.info("Admin service: remove user by username : " + username);
-        User user;
-        try {
-            user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        } catch (Exception e) {
-            logger.warn("user not found");
-            return Optional.empty();
+    public Optional<String> removeUserByUsername(String username) throws Exception {
+        Optional<User> user  = userRepository.findByUsername(username);
+        if(user.isEmpty()) throw new UsernameNotFoundException("User does not exist");
+        userRepository.deleteById(user.get().getId());
+        if (userRepository.existsById(user.get().getId())) {
+            throw new UserDeletionFailedException("Deleting " +  username +" failed");
         }
-        userRepository.deleteById(user.getId());
-       return Optional.ofNullable(user.getUsername());
+        return Optional.of("User " + username + " has been deleted");
     }
 
-    public List<User> fetchAllUsers() {
-        return userRepository.findAll();
+    public Optional<List<User>> fetchAllUsers() {
+        List<User> users = userRepository.findAll();
+        if(users.isEmpty()) return Optional.empty();
+        return Optional.of(users);
     }
 
-    public User updateUser(UserUpdateDTO userUpdateDTO) throws Exception {
-        User user = userRepository.findByUsername(userUpdateDTO.getUsername()).orElseThrow(() -> new UsernameNotFoundException("No user found"));
-        if(!passwordEncoder.matches(userUpdateDTO.getOldPassword(), user.getPassword())) {
-            throw new PasswordNotMatchException("Old password does not match.");
+    public Optional<UserResponseDTO> updateUser(UserUpdateDTO userUpdateDTO) throws Exception {
+        Optional<User> preUpdateUser = userRepository.findByUsername(userUpdateDTO.getUsername());
+        if(preUpdateUser.isEmpty())  {
+            throw new UsernameNotFoundException("User does not exist");
         }
+        if(!passwordEncoder.matches(userUpdateDTO.getOldPassword(), preUpdateUser.get().getPassword())) {
+           throw new PasswordNotMatchException("Password does not match");
+        }
+        var user = preUpdateUser.get();
         user.setUsername(userUpdateDTO.getNewUsername());
         user.setEmail(userUpdateDTO.getNewEmail());
         user.setPassword(passwordEncoder.encode(userUpdateDTO.getNewPassword()));
         user.setPhoneNumber(userUpdateDTO.getNewPhoneNumber());
         userRepository.save(user);
-        return userRepository.findByUsername(user.getUsername()).orElseThrow(() -> new UsernameNotFoundException("update fail"));
+        User updatedUser = userRepository.findById(user.getId())
+                .orElseThrow(() -> new UsernameNotFoundException("Updated user does not find"));
+        return Optional.of(new UserResponseDTO(updatedUser));
     }
 
-    public String toggleUserActivity(String username) {
-        if(!userRepository.existsByUsername(username)) {
-            return "user does not exist";
+    public Optional<String> toggleUserActivity(String username) {
+        Optional<User> origin = userRepository.findByUsername(username);
+        if(origin.isEmpty()) {
+            return Optional.empty();
         }
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
-        user.setActive(!user.isActive());
+        var user = origin.get();
+        boolean isActive = user.isActive();
+        user.setActive(!isActive);
         userRepository.save(user);
         if(user.isActive()) {
-            return "user is activated";
+            return Optional.of(username + " is now activated");
         }
-        return "user is deactivated";
+        return Optional.of(username + " is deactivated");
     }
 }
