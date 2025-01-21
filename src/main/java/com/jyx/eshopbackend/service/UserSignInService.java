@@ -26,6 +26,10 @@ public class UserSignInService {
         }
         sb.append(" ");
         sb.append(jwt.generateToken(authentication.getPrincipal()));
+        sb.append(" ");
+        sb.append(authentication.getPrincipal().getId());
+        sb.append(" ");
+        sb.append(authentication.getPrincipal().getUsername());
         return sb.toString();
     }
 }

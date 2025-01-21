@@ -16,7 +16,6 @@ import java.util.Optional;
 
 
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 public class DefaultController {
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(DefaultController.class);
@@ -59,8 +58,14 @@ public class DefaultController {
     public ResponseEntity<Object> login() {
         // username and password are correct then jwt token should be return to user
         String [] response = userSignInService.generateToken().split(" ");
-        return ResponseEntity.ok(Map.of("status",HttpStatus.OK, "token" , response[1], "role", response[0]));
+        return ResponseEntity.ok(Map.of("status",HttpStatus.OK, "role", response[0],"token" , response[1], "id",response[2],"username",response[3]));
     }
+
+//    @PostMapping("/logout")
+//    public  ResponseEntity<Object> logout() {
+//        return ResponseEntity.ok("logged out ");
+//    }
+
 
     @GetMapping("/auth")
     public String authorized (){

@@ -4,6 +4,7 @@ import com.jyx.eshopbackend.security.authenticationfilter.JwtAuthenticationFilte
 import com.jyx.eshopbackend.security.authenticationfilter.UserAuthenticationFilter;
 import com.jyx.eshopbackend.security.authenticationprovider.JwtAuthenticationProvider;
 import com.jyx.eshopbackend.security.authenticationprovider.UserAuthenticationProvider;
+import org.springframework.web.filter.CorsFilter;
 import org.apache.catalina.security.SecurityConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -60,12 +63,32 @@ public class AppSecurityConfig {
                             authorizeHttp.anyRequest().authenticated();
                         }
                 )
+                .headers(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, AuthenticationFilter.class)
                 .addFilterAfter(userAuthenticationFilter, JwtAuthenticationFilter.class)
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")         // 删除指定的 Cookie（如 Session ID）
+                )
                 .build();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin("http://localhost:5173");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        config.setAllowCredentials(true);
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
     }
 
     @Bean
