@@ -2,6 +2,8 @@ package com.jyx.eshopbackend.dto;
 
 public class UserUpdateDTO extends UserDTO{
 
+    private final Long id;
+
     private final String oldPassword;
 
     private final String newPassword;
@@ -12,15 +14,19 @@ public class UserUpdateDTO extends UserDTO{
 
     private final String newPhoneNumber;
 
-    public UserUpdateDTO(String username, String newUsername, String oldPassword, String newPassword, String email, String phoneNumber) {
-        super(username);
-        this.newEmail = email;
+    public UserUpdateDTO(String id,String oldPassword, String newPassword, String newUsername,String newEmail, String newPhoneNumber) {
+        super(newUsername);
+        this.id = Long.valueOf(id);
+        this.newEmail = newEmail;
         this.oldPassword = oldPassword;
         this.newPassword = newPassword;
         this.newUsername = newUsername;
-        this.newPhoneNumber = phoneNumber;
+        this.newPhoneNumber = newPhoneNumber;
     }
 
+    public Long getId() {
+        return id;
+    }
     public String getOldPassword() {
         return oldPassword;
     }

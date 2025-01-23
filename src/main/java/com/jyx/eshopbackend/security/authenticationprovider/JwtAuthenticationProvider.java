@@ -6,6 +6,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 
@@ -29,9 +30,16 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         logger.info("JwtAuthenticationProvider.authenticate...");
         JwtAuthenticationToken jwtAuthenticationToken = (JwtAuthenticationToken) authentication;
-        if (!jwtAuthenticationToken.getUsername().equals(jwtAuthenticationToken.getRequestName()) ) {
+        // Users(who are not admin) can only update their own info
+        for (GrantedAuthority authority : jwtAuthenticationToken.getAuthorities()) {
+            if (authority.getAuthority().equals("ROLE_ADMIN")) {
+                logger.info("Current user with ROLE_ADMIN has the authority to update other users' data" );
+                break;
+            }
+            if (!jwtAuthenticationToken.getUsername().equals(jwtAuthenticationToken.getRequestName()) ) {
                 logger.info("Token is invalid");
                 throw new BadCredentialsException("username does not match");
+            }
         }
         logger.info("JWT authenticated, token is valid");
         return authentication;

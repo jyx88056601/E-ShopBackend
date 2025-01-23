@@ -48,7 +48,17 @@ public class AdminController {
         for(var user : users.get()) {
             userDTOS.add(new UserResponseDTO(user));
         }
-        return ResponseEntity.ok(Map.of("status",HttpStatus.OK,"data", userDTOS));
+        return ResponseEntity.ok(Map.of("status",HttpStatus.OK,"userDTOS", userDTOS));
+    }
+
+    @GetMapping("/userinfo/{id}")
+    public ResponseEntity<Object> findUserById(@PathVariable String id) {
+        logger.info("/admin/userinfo/"+id);
+        logger.info("AdminController.class: findUserById()");
+        Optional<User> userOptional= adminService.fetchAUser(Long.valueOf(id));
+        if(userOptional.isEmpty()) return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        var userDTO = new UserResponseDTO(userOptional.get());
+        return ResponseEntity.ok(Map.of("status",HttpStatus.OK,"userDTO", userDTO));
     }
 
     @DeleteMapping("/delete-all-users")
@@ -87,13 +97,13 @@ public class AdminController {
             updateUser = adminService.updateUser(userUpdateDTO);
         } catch (Exception e) {
             if (e instanceof UsernameNotFoundException) {
-                logger.info("User not found");
+                logger.info(e.getMessage());
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
             } else if (e instanceof PasswordNotMatchException) {
-                logger.info("Original password is incorrect");
+                logger.info(e.getMessage());
                 return ResponseEntity.badRequest().body(e.getMessage());
             } else {
-                logger.error("unexpected error from AdminController.class: updateUser()");
+                logger.error(e.getMessage());
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("AdminController.class: updateUser()");
             }
         }
