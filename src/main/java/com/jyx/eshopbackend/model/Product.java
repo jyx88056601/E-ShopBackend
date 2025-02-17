@@ -1,5 +1,6 @@
 package com.jyx.eshopbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -15,8 +16,9 @@ public class Product {
     @Column(name = "product_id")
     private Long id;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<Image> images;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    private List<ProductImage> productImages;
 
     @Column(nullable = false)
     private String name;
@@ -36,6 +38,45 @@ public class Product {
     @Column(nullable = false)
     private LocalDateTime createdTime;
 
+    @Column(nullable = false)
+    private LocalDateTime updatedTime;
+
+    @Column(nullable = false)
+    private Long ownerId;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdTime = LocalDateTime.now();
+        this.updatedTime = LocalDateTime.now();
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public List<ProductImage> getProductImages() {
+        return productImages;
+    }
+
+    public void setProductImages(List<ProductImage> productImages) {
+        this.productImages = productImages;
+    }
+
+    public LocalDateTime getUpdatedTime() {
+        return updatedTime;
+    }
+
+    public void setUpdatedTime(LocalDateTime updatedTime) {
+        this.updatedTime = updatedTime;
+    }
 
     public String getName() {
         return name;

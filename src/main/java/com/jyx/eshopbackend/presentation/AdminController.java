@@ -87,6 +87,12 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(response.get());
     }
 
+    @DeleteMapping("/delete-all-products")
+    public ResponseEntity<String> removeAllProducts(){
+        logger.info("/admin/delete-all-products");
+        logger.info("AdminController.class:  removeAllProducts()");
+        return ResponseEntity.status(HttpStatus.OK).body(adminService.deleteAllProduct());
+    }
 
     @PutMapping("/update-user")
     public ResponseEntity<Object> updateUser(@RequestBody UserUpdateDTO userUpdateDTO)  {
