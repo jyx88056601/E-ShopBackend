@@ -76,6 +76,7 @@ public class BusinessController {
         return ResponseEntity.ok(Map.of("status",HttpStatus.OK,"ProductUpLoadingResponseDTO", response));
     }
 
+
     @DeleteMapping("/deleteBy{productId}")
     public ResponseEntity<String> deleteProductById(@PathVariable String productId) {
         String result;
@@ -86,4 +87,5 @@ public class BusinessController {
        }
        return  ResponseEntity.status(HttpStatus.OK).body(result);
     }
+
 }

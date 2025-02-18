@@ -40,6 +40,7 @@ public class S3Service {
         return amazonS3.getUrl(this.bucketName, file.getName()).toString();
     }
 
+
     public String removeFile(String fileName) {
             try {
                 amazonS3.deleteObject(new DeleteObjectRequest(bucketName, "product/" +fileName));
