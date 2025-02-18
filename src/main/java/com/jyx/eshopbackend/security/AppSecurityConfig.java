@@ -59,6 +59,10 @@ public class AppSecurityConfig {
                             authorizeHttp.requestMatchers(publicUrl.urls()).permitAll();
                             logger.info("Configuring /admin/** path to require ROLE_ADMIN authority");
                             authorizeHttp.requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN");
+                            logger.info("Configuring /business/** path to require ROLE_SELLER authority");
+                            authorizeHttp.requestMatchers("/business/**").hasAuthority("ROLE_SELLER");
+                            logger.info("Configuring /personal/** path to require ROLE_BUYER authority");
+                            authorizeHttp.requestMatchers("/personal/**").hasAuthority("ROLE_BUYER");
                             logger.info("All other requests will require authentication");
                             authorizeHttp.anyRequest().authenticated();
                         }

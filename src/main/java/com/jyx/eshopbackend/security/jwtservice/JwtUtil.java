@@ -2,6 +2,7 @@ package com.jyx.eshopbackend.security.jwtservice;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.jyx.eshopbackend.model.Role;
 import com.jyx.eshopbackend.security.UserPrincipal;
@@ -30,7 +31,7 @@ public class JwtUtil {
                 .withClaim("role", role.name())
                 .withClaim("time",Instant.now())
                 .withIssuedAt(Instant.now())
-                .withExpiresAt(Instant.now().plus(Duration.of(30, ChronoUnit.MINUTES)))
+                .withExpiresAt(Instant.now().plus(Duration.of(60, ChronoUnit.MINUTES)))
                 .sign(Algorithm.HMAC256(jwtConfig.getSecretKey()));
     }
 
@@ -39,9 +40,9 @@ public class JwtUtil {
             return JWT.require(Algorithm.HMAC256(jwtConfig.getSecretKey()))
                     .build()
                     .verify(token);
-        } catch (Exception e) {
-            System.out.println("can't decode token !");
-            throw new RuntimeException("Invalid or expired token", e);
+        } catch (JWTVerificationException e) {
+            System.out.println("can't decode token !" + e.getMessage());
+            throw new RuntimeException("Invalid or expired token", e.getCause());
         }
     }
 

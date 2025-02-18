@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -51,6 +52,13 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Order> orders;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<Long> productIds = new ArrayList<>();
+
+    public List<Long> getProductIds() {
+        return productIds;
+    }
 
     @PrePersist
     protected void onCreate() {
