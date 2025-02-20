@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "order_items")
+@Table(name = "order_items", indexes = {@Index(name = "idx_order_id", columnList = "order_id")})
 
 public class OrderItem {
 

@@ -9,10 +9,9 @@ import com.jyx.eshopbackend.model.ProductImage;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.ProductImageRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
-import com.jyx.eshopbackend.service.UserService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,8 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class ProductService {
@@ -75,6 +74,10 @@ public class ProductService {
             ProductImage productImage = new ProductImage();
             productImage.setUrl(url);
             productImage.setProduct(product);
+            if(urls.indexOf(url) == 0) {
+                productImage.setMain(true);
+                product.setMainPictureUrl(url);
+            }
             productImage.setMain(urls.indexOf(url) == 0); // Mark the first image as main
             ProductImage savedImage = saveProductImage(productImage);
             if (savedImage == null) {

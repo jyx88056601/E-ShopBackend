@@ -15,7 +15,7 @@ public class ProductDetailDTO extends ProductDTO{
 
     private final String createdTime;
     private final String updatedTime;
-
+    private final String mainPictureUrl;
     public ProductDetailDTO(Product product) {
         super(product.getName(), String.valueOf(product.getPrice()), String.valueOf(product.getStock()), product.getCategory());
         this.createdTime = product.getCreatedTime().toString();
@@ -25,6 +25,7 @@ public class ProductDetailDTO extends ProductDTO{
         for (ProductImage productImage : product.getProductImages()) {
             imageUrls.add(productImage.getUrl());
         }
+        this.mainPictureUrl = product.getMainPictureUrl();
         this.awsUrls = Collections.unmodifiableList(imageUrls);
     }
 

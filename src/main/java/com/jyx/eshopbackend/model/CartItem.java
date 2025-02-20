@@ -1,13 +1,11 @@
 package com.jyx.eshopbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "cart_items")
-
+@Table(name = "cart_items", indexes = {@Index(name = "idx_cart_id", columnList = "cart_id")})
 public class CartItem {
 
     @Id
@@ -17,8 +15,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
-    @JsonBackReference
-    private Cart cart; // cart was defined by mappedBy = "cart" in Cart class
+    private Cart cart;
 
     @ManyToOne
     @JoinColumn(name = "product_id", nullable = false)
@@ -52,6 +49,6 @@ public class CartItem {
     }
 
     public void setQuantity(int quantity) {
-        this.quantity = quantity >= 0 ?  quantity : this.quantity;
+        this.quantity = Math.max(quantity, 0);
     }
 }

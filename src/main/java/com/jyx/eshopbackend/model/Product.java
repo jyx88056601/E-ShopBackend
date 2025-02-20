@@ -20,6 +20,9 @@ public class Product {
     @JsonManagedReference
     private List<ProductImage> productImages;
 
+    @Column
+    private String mainPictureUrl;
+
     @Column(nullable = false)
     private String name;
 
@@ -126,4 +129,11 @@ public class Product {
         this.category = category;
     }
 
+    public String getMainPictureUrl() {
+        return mainPictureUrl;
+    }
+
+    public void setMainPictureUrl(String mainPictureUrl) {
+        this.mainPictureUrl = mainPictureUrl;
+    }
 }
