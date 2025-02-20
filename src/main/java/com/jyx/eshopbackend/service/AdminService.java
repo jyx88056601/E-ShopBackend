@@ -7,6 +7,7 @@ import com.jyx.eshopbackend.exception.UserDeletionFailedException;
 import com.jyx.eshopbackend.model.Order;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.OrderRepository;
+import com.jyx.eshopbackend.persistence.ProductRepository;
 import com.jyx.eshopbackend.persistence.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,11 +24,15 @@ public class AdminService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public AdminService(UserService userService, UserRepository userRepository, OrderRepository orderRepository, PasswordEncoder passwordEncoder) {
+    private final ProductRepository productRepository;
+
+    public AdminService(UserService userService, UserRepository userRepository, OrderRepository orderRepository, PasswordEncoder passwordEncoder, ProductRepository productRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.passwordEncoder = passwordEncoder;
+
+        this.productRepository = productRepository;
     }
 
     public Optional<List<Order>> findOrdersByUsername(String username) {
@@ -102,5 +107,11 @@ public class AdminService {
             return Optional.of(username + " is now activated");
         }
         return Optional.of(username + " is deactivated");
+    }
+
+
+    public String deleteAllProduct() {
+         productRepository.deleteAll();
+         return "Products from database have been cleared";
     }
 }
