@@ -16,6 +16,8 @@ public class ProductDetailDTO extends ProductDTO{
     private final String createdTime;
     private final String updatedTime;
     private final String mainPictureUrl;
+
+    private final String description;
     public ProductDetailDTO(Product product) {
         super(product.getName(), String.valueOf(product.getPrice()), String.valueOf(product.getStock()), product.getCategory());
         this.createdTime = product.getCreatedTime().toString();
@@ -23,10 +25,16 @@ public class ProductDetailDTO extends ProductDTO{
         this.id = String.valueOf(product.getId());
         List<String> imageUrls = new ArrayList<>();
         for (ProductImage productImage : product.getProductImages()) {
-            imageUrls.add(productImage.getUrl());
+            imageUrls.add(productImage.getUrl().replace("https://e-commerce-shop-ethan-jiang.s3.us-west-2.amazonaws.com/",
+                    "https://e-commerce-shop-ethan-jiang.s3.us-west-2.amazonaws.com/product/"));
         }
-        this.mainPictureUrl = product.getMainPictureUrl();
+        this.description = product.getDescription();
+        this.mainPictureUrl = imageUrls.get(0);
         this.awsUrls = Collections.unmodifiableList(imageUrls);
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public String getId() {
@@ -45,4 +53,7 @@ public class ProductDetailDTO extends ProductDTO{
         return awsUrls;
     }
 
+    public String getMainPictureUrl() {
+        return mainPictureUrl;
+    }
 }

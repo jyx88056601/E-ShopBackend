@@ -123,4 +123,22 @@ public class ProductService {
 
         return "Product with ID " + productId + " has been deleted. AWS server alert: " + sb;
     }
+
+    // fetch products to be shown to buyers
+    public Page<ProductDetailDTO> findProducts(String page, String size) {
+        int pageNumber = Integer.parseInt(page);
+        int pageSize = Integer.parseInt(size);
+        if (pageNumber < 0 || pageSize <= 0) {
+            throw new IllegalArgumentException("Page number cannot be negative and size must be greater than 0.");
+        }
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Product> products = productRepository.findAll(pageable);
+        return products.map(ProductDetailDTO::new);
+    }
+
+    // find the product detail by id
+    public Optional<ProductDetailDTO> findProductDetailById(Long id) {
+         return productRepository.findById(id).map(ProductDetailDTO::new);
+    }
+
 }
