@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -19,5 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByIdIn(@Param("productIds") List<Long> productIds, Pageable pageable);
 
     Page<Product> findAll(@Nonnull Pageable pageable);
+
+    Optional<Product> findProductById(Long id);
 
 }

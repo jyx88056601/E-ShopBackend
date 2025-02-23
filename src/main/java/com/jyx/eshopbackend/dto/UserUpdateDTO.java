@@ -14,7 +14,7 @@ public class UserUpdateDTO extends UserDTO{
 
     private final String newPhoneNumber;
 
-    public UserUpdateDTO(String id,String oldPassword, String newPassword, String newUsername,String newEmail, String newPhoneNumber) {
+    public UserUpdateDTO(String id, String oldPassword, String newPassword, String newUsername,String newEmail, String newPhoneNumber) {
         super(newUsername);
         this.id = Long.valueOf(id);
         this.newEmail = newEmail;

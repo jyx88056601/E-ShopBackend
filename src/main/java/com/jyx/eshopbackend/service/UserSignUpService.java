@@ -4,6 +4,7 @@ import com.jyx.eshopbackend.dto.UserResponseDTO;
 import com.jyx.eshopbackend.dto.UserSignupDTO;
 import com.jyx.eshopbackend.exception.DupliateUserException;
 import com.jyx.eshopbackend.exception.UserNotStoredException;
+import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,9 +19,12 @@ public class UserSignUpService {
 
    private final PasswordEncoder passwordEncoder;
 
-    public UserSignUpService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+   private final CartService cartService;
+
+    public UserSignUpService(UserRepository userRepository, PasswordEncoder passwordEncoder, CartService cartService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.cartService = cartService;
     }
 
     public Optional<UserResponseDTO> registerUser(UserSignupDTO userSignupDTO) throws Exception {
@@ -39,6 +43,9 @@ public class UserSignUpService {
         user.setActive(true);
         userRepository.save(user);
         User storedUser = userRepository.findByUsername(userSignupDTO.getUsername()).orElseThrow(() -> new UserNotStoredException("Unexpected error, user does not exist in the database"));
+        Cart cart = new Cart();
+        cart.setUser(storedUser);
+        cartService.initializeCart(cart);
         return Optional.of(new UserResponseDTO(storedUser));
     }
  }

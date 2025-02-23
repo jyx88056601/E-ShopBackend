@@ -1,11 +1,18 @@
 package com.jyx.eshopbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "cart_items", indexes = {@Index(name = "idx_cart_id", columnList = "cart_id")})
+@Table(
+        name = "cart_items",
+        indexes = {
+                @Index(name = "idx_cart_id", columnList = "cart_id"),
+                @Index(name = "idx_cart_product", columnList = "cart_id, product_id")
+        }
+)
 public class CartItem {
 
     @Id
@@ -15,6 +22,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
+    @JsonIgnore
     private Cart cart;
 
     @ManyToOne
@@ -50,5 +58,9 @@ public class CartItem {
 
     public void setQuantity(int quantity) {
         this.quantity = Math.max(quantity, 0);
+    }
+
+    public void setCart(Cart cart) {
+        this.cart = cart;
     }
 }

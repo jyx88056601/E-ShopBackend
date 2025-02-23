@@ -1,6 +1,9 @@
 package com.jyx.eshopbackend.presentation;
 
-import com.jyx.eshopbackend.dto.ProductDetailDTO;
+import com.jyx.eshopbackend.dto.*;
+import com.jyx.eshopbackend.model.Cart;
+import com.jyx.eshopbackend.model.CartItem;
+import com.jyx.eshopbackend.service.CartService;
 import com.jyx.eshopbackend.service.ProductService;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -8,6 +11,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -18,8 +23,11 @@ public class PersonalController {
 
     private final ProductService productService;
 
-    public PersonalController(ProductService productService) {
+    private final CartService cartService;
+
+    public PersonalController(ProductService productService, CartService cartService) {
         this.productService = productService;
+        this.cartService = cartService;
     }
 
     @GetMapping("/products")
@@ -49,4 +57,31 @@ public class PersonalController {
         }
         return ResponseEntity.status(HttpStatus.OK).body(productDetailDTO.get());
     }
+
+    @GetMapping("/cart/user_id={user_id}")
+    public ResponseEntity<Object> findCartById(@PathVariable String user_id) {
+        logger.info("PersonalController.findCartById()");
+        logger.info("GET:/personal/cart/" + user_id);
+        var cart = cartService.findCartById(Long.parseLong(user_id)).orElseThrow(() -> new RuntimeException("No cart found with" + user_id));
+        List<CartItemResponseDTO> cartItemRequestDTOList = new ArrayList<>();
+        for (CartItem cartItem : cart.getCartItems()) {
+            ProductSimplifiedResponseDTO productSimplifiedResponseDTO = new ProductSimplifiedResponseDTO(cartItem.getProduct());
+            cartItemRequestDTOList.add(new CartItemResponseDTO(String.valueOf(cartItem.getQuantity()),productSimplifiedResponseDTO));
+        }
+        CartResponseDTO cartResponseDTO = new CartResponseDTO(user_id, cartItemRequestDTOList);
+        return ResponseEntity.status(HttpStatus.OK).body(cartResponseDTO);
+    }
+
+    @PostMapping("/cart/add-to-cart/user_id={user_id}")
+    public ResponseEntity<Object> addToCart(@PathVariable String user_id, @RequestBody List<CartItemRequestDTO> cartItemRequestDTOList) {
+        Optional<Cart> cart;
+        try {
+            cart =  cartService.addToCart(new CartRequestDTO(user_id, cartItemRequestDTOList));
+        } catch (Exception e) {
+            logger.warn(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+        return  ResponseEntity.status(HttpStatus.OK).body(cart.get());
+    }
+
 }
