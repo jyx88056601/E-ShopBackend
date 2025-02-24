@@ -11,9 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/personal")
@@ -66,7 +64,7 @@ public class PersonalController {
         List<CartItemResponseDTO> cartItemRequestDTOList = new ArrayList<>();
         for (CartItem cartItem : cart.getCartItems()) {
             ProductSimplifiedResponseDTO productSimplifiedResponseDTO = new ProductSimplifiedResponseDTO(cartItem.getProduct());
-            cartItemRequestDTOList.add(new CartItemResponseDTO(String.valueOf(cartItem.getQuantity()),productSimplifiedResponseDTO));
+            cartItemRequestDTOList.add(new CartItemResponseDTO(String.valueOf(cartItem.getId()), String.valueOf(cartItem.getQuantity()),productSimplifiedResponseDTO));
         }
         CartResponseDTO cartResponseDTO = new CartResponseDTO(user_id, cartItemRequestDTOList);
         return ResponseEntity.status(HttpStatus.OK).body(cartResponseDTO);
@@ -82,6 +80,18 @@ public class PersonalController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
         return  ResponseEntity.status(HttpStatus.OK).body(cart.get());
+    }
+
+    @DeleteMapping("/delete-cartItems/{cartId}")
+    public ResponseEntity<Object> deleteCartItems(@PathVariable String cartId, @RequestBody List<String> ids) {
+        logger.info("PersonalController.deleteCartItems");
+        logger.info("DELETE:/delete-cartItems");
+        Set<Long> cartItemIds = new HashSet<>();
+        for(String id : ids) {
+            cartItemIds.add(Long.parseLong(id));
+        }
+         cartService.deleteCartItemsByIds(Long.parseLong(cartId),cartItemIds);
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }

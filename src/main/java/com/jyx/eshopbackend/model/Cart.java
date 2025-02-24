@@ -12,13 +12,13 @@ public class Cart {
     @Id
     private Long id;
 
-    @OneToOne
+    @OneToOne(orphanRemoval = true)
     @MapsId
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval=true)
     private List<CartItem> cartItems;
 
     public Long getId() {

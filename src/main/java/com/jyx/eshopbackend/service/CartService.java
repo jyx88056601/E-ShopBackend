@@ -8,14 +8,17 @@ import com.jyx.eshopbackend.model.CartItem;
 import com.jyx.eshopbackend.persistence.CartItemRepository;
 import com.jyx.eshopbackend.persistence.CartRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class CartService {
 
+    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(CartService.class);
     private final CartRepository cartRepository;
 
     private final CartItemRepository cartItemRepository;
@@ -68,9 +71,11 @@ public class CartService {
         return Optional.of(cartRepository.save(cart));
     }
 
-    public Optional<CartItem> addCartItem(CartItem cartItem) {
-        return Optional.of(cartItemRepository.save(cartItem));
+    @Transactional
+    public void deleteCartItemsByIds(Long cartId, Set<Long> cartItemIds) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+        cart.getCartItems().removeIf(item -> cartItemIds.contains(item.getId()));
+        cartRepository.save(cart); // 更新 Cart
     }
-
-
 }
