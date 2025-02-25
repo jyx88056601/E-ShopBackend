@@ -72,6 +72,11 @@ public class PersonalController {
 
     @PostMapping("/cart/add-to-cart/user_id={user_id}")
     public ResponseEntity<Object> addToCart(@PathVariable String user_id, @RequestBody List<CartItemRequestDTO> cartItemRequestDTOList) {
+        logger.info("PersonalController.addToCart()");
+        logger.info("POST:/cart/add-to-cart/user_id=" + user_id);
+         for(var c : cartItemRequestDTOList) {
+             System.out.println(c.getProduct_id() + " " + c.getQuantity());
+         }
         Optional<Cart> cart;
         try {
             cart =  cartService.addToCart(new CartRequestDTO(user_id, cartItemRequestDTOList));
