@@ -7,6 +7,7 @@ import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.CartItem;
 import com.jyx.eshopbackend.persistence.CartRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
+import com.jyx.eshopbackend.persistence.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,13 +19,13 @@ public class CartService {
 
     private final ProductRepository productRepository;
 
-    public CartService(CartRepository cartRepository, ProductRepository productRepository) {
+     private final UserRepository userRepository;
+
+    public CartService(CartRepository cartRepository, ProductRepository productRepository, UserRepository userRepository) {
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
-    }
 
-    public void initializeCart(Cart cart) {
-        cartRepository.save(cart);
+        this.userRepository = userRepository;
     }
 
     public Optional<Cart> findCartById(Long id) {
@@ -44,7 +45,6 @@ public class CartService {
         for (CartItem cartItem : cart.getCartItems()) {
             cartItemMap.put(cartItem.getProduct().getId(), cartItem);
         }
-
 
         List<CartItemRequestDTO> cartItemRequestDTOList = cartRequestDTO.getProductRequestDTO();
         for (CartItemRequestDTO cartItemRequestDTO : cartItemRequestDTOList) {

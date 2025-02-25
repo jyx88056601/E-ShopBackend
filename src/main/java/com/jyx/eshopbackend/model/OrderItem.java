@@ -18,20 +18,73 @@ public class OrderItem {
     @JsonBackReference
     private Order order;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)
-    private Product product;
+    @Column(nullable = false)
+    private Long productId;
 
     @Column(nullable = false)
-    private int quantity;
+    private String productName;
 
     @Column(nullable = false)
     private BigDecimal price;
 
     @Column(nullable = false)
+    private int quantity;
+
+    @Column(nullable = false)
     private BigDecimal totalPrice;
 
 
+    @PostPersist
+    private void AfterCreate() {
+        totalPrice = BigDecimal.valueOf(quantity).multiply(price);
+    }
 
+    public Long getId() {
+        return id;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public BigDecimal getTotalPrice() {
+        return totalPrice;
+    }
 }
 

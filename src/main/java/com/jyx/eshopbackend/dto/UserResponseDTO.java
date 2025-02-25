@@ -40,9 +40,7 @@ public class UserResponseDTO extends UserDTO{
         this.isActive = user.isActive();
         this.email = user.getEmail();
         this.phoneNumber = user.getPhoneNumber();
-        this.addresses = user.getAddresses();
         this.cart = user.getCart();
-        this.orders = user.getOrders();
         this.role = user.getRole();
         this.registrationTime = user.getRegistrationTime();
         this.lastUpdatedDate = user.getLastUpdatedDate();

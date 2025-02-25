@@ -1,6 +1,5 @@
 package com.jyx.eshopbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.util.List;
@@ -12,14 +11,23 @@ public class Cart {
     @Id
     private Long id;
 
-    @OneToOne(orphanRemoval = true)
+    @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
-    @JsonBackReference
     private User user;
 
-    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval=true)
+    public Cart() {}
+
+    public Cart(User user) {
+        this.user = user;
+        id = this.user.getId();
+    }
+
+    @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, fetch = FetchType.EAGER,orphanRemoval = true)
     private List<CartItem> cartItems;
+
+
+
 
     public Long getId() {
         return id;

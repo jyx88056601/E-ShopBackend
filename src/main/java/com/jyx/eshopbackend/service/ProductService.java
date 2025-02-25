@@ -78,7 +78,7 @@ public class ProductService {
                 productImage.setMain(true);
                 product.setMainPictureUrl(url);
             }
-            productImage.setMain(urls.indexOf(url) == 0); // Mark the first image as main
+            productImage.setMain(urls.indexOf(url) == 0);
             ProductImage savedImage = saveProductImage(productImage);
             if (savedImage == null) {
                 throw new RuntimeException("Can't save image with URL: " + url);

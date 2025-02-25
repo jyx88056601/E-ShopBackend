@@ -16,7 +16,7 @@ public class Product {
     @Column(name = "product_id")
     private Long id;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     @JsonManagedReference
     private List<ProductImage> productImages;
 
@@ -35,7 +35,7 @@ public class Product {
     @Column(nullable = false)
     private String category;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     @Column(nullable = false)
@@ -136,4 +136,6 @@ public class Product {
     public void setMainPictureUrl(String mainPictureUrl) {
         this.mainPictureUrl = mainPictureUrl;
     }
+
+
 }

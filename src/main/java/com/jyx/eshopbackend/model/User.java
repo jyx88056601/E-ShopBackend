@@ -1,6 +1,5 @@
 package com.jyx.eshopbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -40,19 +39,20 @@ public class User {
     @Column(nullable = false)
     private boolean isActive;
 
-    // in Cart entity, there must be a user object
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonManagedReference
+    @PrimaryKeyJoinColumn
     private Cart cart;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Address> addresses;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonManagedReference
-    private List<Order> orders;
+    // store addresses ids in a list for business account
+    @ElementCollection(fetch = FetchType.EAGER)
+    private List<Long> addressIds = new ArrayList<>();
 
+    public List<Long> getAddressIds() {
+        return addressIds;
+    }
+
+    // store updated products ids in a list for business account
     @ElementCollection(fetch = FetchType.EAGER)
     private List<Long> productIds = new ArrayList<>();
 
@@ -61,13 +61,14 @@ public class User {
     }
 
     @PrePersist
-    protected void onCreate() {
+    private void onCreate() {
         this.registrationTime = LocalDateTime.now();
         this.lastUpdatedDate = LocalDateTime.now();
+        this.cart = new Cart(this);
     }
 
     @PreUpdate
-    protected void onUpdate() {
+    private void onUpdate() {
         this.lastUpdatedDate = LocalDateTime.now();
     }
 
@@ -105,11 +106,6 @@ public class User {
 
     public boolean isActive() {
         return isActive;
-    }
-
-
-    public List<Address> getAddresses() {
-        return addresses;
     }
 
     public void setId(Long id) {
@@ -152,19 +148,8 @@ public class User {
         this.cart = cart;
     }
 
-    public void setAddresses(List<Address> addresses) {
-        this.addresses = addresses;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
-
     public Cart getCart() {
         return cart;
     }
 
-    public List<Order> getOrders() {
-        return orders;
-    }
 }

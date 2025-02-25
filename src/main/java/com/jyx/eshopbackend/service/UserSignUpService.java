@@ -3,9 +3,8 @@ package com.jyx.eshopbackend.service;
 import com.jyx.eshopbackend.dto.UserResponseDTO;
 import com.jyx.eshopbackend.dto.UserSignupDTO;
 import com.jyx.eshopbackend.exception.DupliateUserException;
-import com.jyx.eshopbackend.exception.UserNotStoredException;
-import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.User;
+import com.jyx.eshopbackend.persistence.CartRepository;
 import com.jyx.eshopbackend.persistence.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,12 +18,14 @@ public class UserSignUpService {
 
    private final PasswordEncoder passwordEncoder;
 
-   private final CartService cartService;
+  private final CartRepository cartRepository;
 
-    public UserSignUpService(UserRepository userRepository, PasswordEncoder passwordEncoder, CartService cartService) {
+
+
+    public UserSignUpService(UserRepository userRepository, PasswordEncoder passwordEncoder, CartRepository cartRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-        this.cartService = cartService;
+        this.cartRepository = cartRepository;
     }
 
     public Optional<UserResponseDTO> registerUser(UserSignupDTO userSignupDTO) throws Exception {
@@ -41,11 +42,7 @@ public class UserSignUpService {
         user.setPhoneNumber(userSignupDTO.getPhoneNumber());
         user.setRole(userSignupDTO.getRole());
         user.setActive(true);
-        userRepository.save(user);
-        User storedUser = userRepository.findByUsername(userSignupDTO.getUsername()).orElseThrow(() -> new UserNotStoredException("Unexpected error, user does not exist in the database"));
-        Cart cart = new Cart();
-        cart.setUser(storedUser);
-        cartService.initializeCart(cart);
-        return Optional.of(new UserResponseDTO(storedUser));
+        User storedUser = userRepository.save(user);
+        return Optional.of(new UserResponseDTO(  userRepository.save(storedUser)));
     }
  }

@@ -1,6 +1,5 @@
 package com.jyx.eshopbackend.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 @Entity
@@ -10,11 +9,6 @@ public class Address {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "address_id")
     private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonBackReference
-    private User user;
 
     @Column(nullable = false)
     private String recipientName;
@@ -50,14 +44,6 @@ public class Address {
 
     @Column(nullable = false)
     private String postalCode;
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 
 
 }

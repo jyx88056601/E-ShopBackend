@@ -10,7 +10,7 @@ import java.math.BigDecimal;
         name = "cart_items",
         indexes = {
                 @Index(name = "idx_cart_id", columnList = "cart_id"),
-                @Index(name = "idx_cart_product", columnList = "cart_id, product_id")
+                @Index(name = "id_product", columnList = "product_id")
         }
 )
 public class CartItem {

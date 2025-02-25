@@ -4,6 +4,7 @@ import com.jyx.eshopbackend.dto.*;
 import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.CartItem;
 import com.jyx.eshopbackend.service.CartService;
+import com.jyx.eshopbackend.service.OrderService;
 import com.jyx.eshopbackend.service.ProductService;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -23,9 +24,12 @@ public class PersonalController {
 
     private final CartService cartService;
 
-    public PersonalController(ProductService productService, CartService cartService) {
+    private final OrderService orderService;
+
+    public PersonalController(ProductService productService, CartService cartService, OrderService orderService) {
         this.productService = productService;
         this.cartService = cartService;
+        this.orderService = orderService;
     }
 
     @GetMapping("/products")
@@ -89,7 +93,7 @@ public class PersonalController {
 
     @DeleteMapping("/delete-cartItems/{cartId}")
     public ResponseEntity<Object> deleteCartItems(@PathVariable String cartId, @RequestBody List<String> ids) {
-        logger.info("PersonalController.deleteCartItems");
+        logger.info("PersonalController.deleteCartItems()");
         logger.info("DELETE:/delete-cartItems");
         Set<Long> cartItemIds = new HashSet<>();
         for(String id : ids) {
@@ -97,6 +101,19 @@ public class PersonalController {
         }
          cartService.deleteCartItemsByIds(Long.parseLong(cartId),cartItemIds);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/create-order")
+    public ResponseEntity<Object> createAnOrder(@RequestBody OrderRequestDTO orderRequestDTO) {
+        logger.info("PersonalController.createAnOrder()");
+        logger.info("Post:/create-order");
+        OrderResponseDTO orderResponseDTO;
+        try {
+           orderResponseDTO =  orderService.createOrder(orderRequestDTO).get();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(orderResponseDTO);
     }
 
 }

@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "shipments")
+@Table(name = "shipments", indexes = {@Index(name = "idx_order_id", columnList = "order_id")})
 public class Shipment {
 
     @Id
@@ -25,6 +25,11 @@ public class Shipment {
     private LocalDateTime shippedDate;
     private ShipmentStatus status;
 
+
+    @PrePersist
+    protected void onCreate() {
+        status = ShipmentStatus.PENDING;
+    }
 
 }
 

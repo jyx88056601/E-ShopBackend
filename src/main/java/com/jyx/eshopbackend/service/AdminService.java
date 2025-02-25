@@ -4,7 +4,6 @@ import com.jyx.eshopbackend.dto.UserResponseDTO;
 import com.jyx.eshopbackend.dto.UserUpdateDTO;
 import com.jyx.eshopbackend.exception.PasswordNotMatchException;
 import com.jyx.eshopbackend.exception.UserDeletionFailedException;
-import com.jyx.eshopbackend.model.Order;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.OrderRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
@@ -33,14 +32,6 @@ public class AdminService {
         this.passwordEncoder = passwordEncoder;
 
         this.productRepository = productRepository;
-    }
-
-    public Optional<List<Order>> findOrdersByUsername(String username) {
-        Optional<Long> id = userService.findUserIdByUsername(username);
-        if(id.isEmpty()) {
-            return Optional.empty();
-        }
-        return orderRepository.findOrdersByUser_Id(id.get());
     }
 
 
