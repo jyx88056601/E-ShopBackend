@@ -8,10 +8,18 @@ import com.jyx.eshopbackend.persistence.OrderRepository;
 import com.jyx.eshopbackend.persistence.PaymentRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
 import com.jyx.eshopbackend.persistence.ShipmentRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -30,22 +38,21 @@ public class OrderService {
     }
 
     @Transactional
-    public Optional<OrderResponseDTO> createOrder(OrderRequestDTO orderRequestDTO)   {
-        // build a new order with auto generated UUID
-        Order order = orderRepository.save(new Order());
-        order.setOrderNumber(order.getId().toString() + order.getOrderTime());
+    public Optional<OrderResponseDTO> createOrder(String customerId, String merchantId, OrderRequestDTO orderRequestDTO)   {
+        Order order = new Order();
+        order.setOrderNumber(customerId + LocalDateTime.now() + merchantId);
         order.setOrderStatus(OrderStatus.UNPAID);
-        Shipment shipment = shipmentRepository.save(new Shipment());
-        order.setShipment(shipment);
-        Payment payment = paymentRepository.save(new Payment());
-        order.setPayment(payment);
+        order.setCustomerId(Long.parseLong(customerId));
+        order.setMerchantId(Long.parseLong(merchantId));
+        BigDecimal totalAmount = new BigDecimal(0);
+        List<OrderItem> orderItems = new ArrayList<>();
        for (OrderItemDTO orderItemDTO : orderRequestDTO.getOrderItemRequestDTOList()) {
-          String product_id = orderItemDTO.getProduct_id();
+          String product_id = orderItemDTO.getProductId();
           var product = productRepository.findById(Long.parseLong(product_id)).orElseThrow(() -> new RuntimeException("No product found"));
           if (product.getStock() < Integer.parseInt(orderItemDTO.getQuantity())) {
-                return Optional.empty();
+               throw new IllegalArgumentException(product.getName() + " is out of stock");
           }
-          int quantity = Integer.parseInt(orderItemDTO.getQuantity());
+           int quantity = Integer.parseInt(orderItemDTO.getQuantity());
            product.setStock(product.getStock() - quantity );
            productRepository.save(product);
            OrderItem orderItem = new OrderItem();
@@ -54,8 +61,27 @@ public class OrderService {
            orderItem.setPrice(product.getPrice());
            orderItem.setQuantity(quantity);
            orderItem.setProductName(product.getName());
-           order.getOrderItems().add(orderItem);
+           orderItem.setOrder(order);
+           orderItems.add(orderItem);
+           totalAmount = totalAmount.add(BigDecimal.valueOf(orderItem.getQuantity()).multiply(orderItem.getPrice()));
        }
-       return Optional.of(new OrderResponseDTO(orderRepository.save(order)));
+        order.setOrderItems(orderItems);
+        order.setTotalAmount(totalAmount);
+        order = orderRepository.save(order);
+//        Shipment shipment = shipmentRepository.save(new Shipment(order));
+//        order.setShipment(shipment);
+//        Payment payment = paymentRepository.save(new Payment(order));
+//        order.setPayment(payment);
+        OrderResponseDTO orderResponseDTO = new OrderResponseDTO(order);
+       return Optional.of(orderResponseDTO);
+    }
+
+    public Page<OrderResponseDTO> fetchOrderByCustomerId(Long customerId, int page, int size) {
+            Pageable pageable = PageRequest.of(page, size);
+            Page<Order> orderPage = orderRepository.findByCustomerId(customerId, pageable);
+            return orderPage.map(OrderResponseDTO::new);
+    }
+    public void removeOrder(UUID orderId) {
+        orderRepository.deleteById(orderId);
     }
 }

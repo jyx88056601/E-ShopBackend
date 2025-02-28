@@ -34,8 +34,8 @@ public class OrderItem {
     private BigDecimal totalPrice;
 
 
-    @PostPersist
-    private void AfterCreate() {
+    @PrePersist
+    private void onCreate() {
         totalPrice = BigDecimal.valueOf(quantity).multiply(price);
     }
 

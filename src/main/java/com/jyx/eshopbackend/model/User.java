@@ -1,5 +1,6 @@
 package com.jyx.eshopbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ public class User {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @PrimaryKeyJoinColumn
+    @JsonIgnore
     private Cart cart;
 
 

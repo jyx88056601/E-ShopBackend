@@ -49,9 +49,7 @@ public class AppSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
 
-// 限制分别来自 authorizeHttp
-        // 以及userAuthenticationFilter 的限制  两个都需要突破
-            //jwtAuthenticationFilter 却没事 因为check了token
+
         return http
                 .authorizeHttpRequests(
                         authorizeHttp -> {

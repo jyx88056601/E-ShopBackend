@@ -1,16 +1,16 @@
 package com.jyx.eshopbackend.dto;
 
 public class OrderItemDTO {
-   private final String product_id;
+   private final String productId;
    private final String quantity;
 
-    public OrderItemDTO(String product_id, String quantity) {
-        this.product_id = product_id;
+    public OrderItemDTO(String productId, String quantity) {
+        this.productId = productId;
         this.quantity = quantity;
     }
 
-    public String getProduct_id() {
-        return product_id;
+    public String getProductId() {
+        return productId;
     }
 
     public String getQuantity() {

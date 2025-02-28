@@ -124,24 +124,5 @@ public class AdminController {
         return response.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
-    // order control
-//    @GetMapping("/user/{username}/orders")
-//    public ResponseEntity<Object> findOrdersByUsername(@PathVariable String username) {
-//        logger.info("/admin/user/"+username+"/orders");
-//        logger.info("AdminController.class: findOrdersByUsername()");
-//        Optional<List<Order>> orderList = adminService.findOrdersByUsername(username);
-//        List<OrderDTO> orderDTOS =  new ArrayList<>();
-//        if (orderList.isEmpty()) return ResponseEntity.noContent().build();
-//                ResponseEntity.ok(Map.of("status",HttpStatus.,"data", orderList));
-//       for(Order order : orderList.get()) {
-//          orderDTOS.add(new OrderDTO(order));
-//       }
-//        return ResponseEntity.ok(Map.of("status", HttpStatus.OK,"data",orderDTOS));
-//        HttpHeaders headers = new HttpHeaders();
-//        // 总条目数
-//        headers.add("X-Total-Count", "100");
-//        // 调试信息
-//        headers.add("Debug-Info", "Processed in 25ms");
-//       return ResponseEntity.status(HttpStatus.OK).headers(headers).body(orderDTOS);
-//    }
+
 }

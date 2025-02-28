@@ -1,5 +1,6 @@
 package com.jyx.eshopbackend.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -15,7 +16,8 @@ public class Payment {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "order_id", nullable = false, unique = true)
+    @JoinColumn(name = "order_id", unique = true, nullable = false)
+    @JsonBackReference
     private Order order;
 
     private BigDecimal amount;
@@ -26,10 +28,36 @@ public class Payment {
 
     private LocalDateTime paymentDate;
 
+    public Payment() {
+    }
+
+    public Payment(Order order) {
+        this.order = order;
+    }
+
     @PrePersist
     public void onCreate() {
         status =  PaymentStatus.UNPAID;
     }
 
+    public Long getId() {
+        return id;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+
+    public PaymentStatus getStatus() {
+        return status;
+    }
+
+    public LocalDateTime getPaymentDate() {
+        return paymentDate;
+    }
 }
 

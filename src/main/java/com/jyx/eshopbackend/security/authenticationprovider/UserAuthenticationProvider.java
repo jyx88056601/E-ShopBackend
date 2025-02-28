@@ -30,7 +30,7 @@ public class UserAuthenticationProvider implements AuthenticationProvider {
             logger.info("UserAuthenticationProvider: Already authenticated with JWT token");
             return authentication;
         }
-        // otherwise
+        // user does not have a token but use password and username instead
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
         if (!passwordEncoder.matches(String.valueOf(authentication.getCredentials()),userPrincipal.getPassword())) {
             logger.info("UserAuthenticationProvider: user and password do not match");

@@ -3,7 +3,9 @@ package com.jyx.eshopbackend.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import org.hibernate.annotations.GenericGenerator;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -15,35 +17,40 @@ import java.util.UUID;
 })
 public class Order {
     @Id
+    @GeneratedValue(generator = "UUID")
+    @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
     @Column(name = "order_id", nullable = false, updatable = false)
     private UUID id;
 
     @Column(nullable = false)
-    private Long merchant_id;
+    private Long merchantId;
 
     @Column(nullable = false)
-    private Long customer_id;
+    private Long customerId;
 
     @Column(nullable = false)
     private String orderNumber;
 
-    @Column(nullable = false)
-    private double totalAmount;
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal totalAmount;
 
-    @Column(nullable = false)
-    private LocalDateTime OrderCreatedTime;
+    @Column(nullable = false, name = "order_created_time")
+    private LocalDateTime orderCreatedTime;
 
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonManagedReference
     private List<OrderItem> orderItems;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payment_id", unique = true)
+    @JsonManagedReference
     private Payment payment;
 
-    @OneToOne
+
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "shipment_id")
+    @JsonManagedReference
     private Shipment shipment;
 
     @Enumerated(EnumType.STRING)
@@ -52,8 +59,7 @@ public class Order {
 
     @PrePersist
     protected void onCreate() {
-       id = UUID.randomUUID();
-       setOrderTime(LocalDateTime.now());
+        setOrderTime(LocalDateTime.now());
     }
 
     public UUID getId() {
@@ -64,12 +70,12 @@ public class Order {
         return orderNumber;
     }
 
-    public double getTotalAmount() {
+    public BigDecimal getTotalAmount() {
         return totalAmount;
     }
 
     public LocalDateTime getOrderTime() {
-        return OrderCreatedTime;
+        return orderCreatedTime;
     }
 
     public List<OrderItem> getOrderItems() {
@@ -88,32 +94,32 @@ public class Order {
         return orderStatus;
     }
 
-    public Long getMerchant_id() {
-        return merchant_id;
+    public Long getMerchantId() {
+        return merchantId;
     }
 
-    public Long getCustomer_id() {
-        return customer_id;
+    public Long getCustomerId() {
+        return customerId;
     }
 
-    public void setMerchant_id(Long merchant_id) {
-        this.merchant_id = merchant_id;
+    public void setMerchantId(Long merchant_id) {
+        this.merchantId = merchant_id;
     }
 
-    public void setCustomer_id(Long customer_id) {
-        this.customer_id = customer_id;
+    public void setCustomerId(Long customer_id) {
+        this.customerId = customer_id;
     }
 
     public void setOrderNumber(String orderNumber) {
         this.orderNumber = orderNumber;
     }
 
-    public void setTotalAmount(double totalAmount) {
+    public void setTotalAmount(BigDecimal totalAmount) {
         this.totalAmount = totalAmount;
     }
 
     public void setOrderTime(LocalDateTime time) {
-       this.OrderCreatedTime = time;
+       this.orderCreatedTime = time;
     }
 
     public void setOrderItems(List<OrderItem> orderItems) {
@@ -131,4 +137,10 @@ public class Order {
     public void setOrderStatus(OrderStatus orderStatus) {
         this.orderStatus = orderStatus;
     }
+
+    public LocalDateTime getOrderCreatedTime() {
+        return orderCreatedTime;
+    }
+
+
 }

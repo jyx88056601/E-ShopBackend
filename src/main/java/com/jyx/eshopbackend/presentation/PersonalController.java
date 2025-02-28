@@ -8,6 +8,9 @@ import com.jyx.eshopbackend.service.OrderService;
 import com.jyx.eshopbackend.service.ProductService;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +29,15 @@ public class PersonalController {
 
     private final OrderService orderService;
 
-    public PersonalController(ProductService productService, CartService cartService, OrderService orderService) {
+    private final PagedResourcesAssembler<OrderResponseDTO> pageAssembler;
+
+
+
+    public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> pageAssembler) {
         this.productService = productService;
         this.cartService = cartService;
         this.orderService = orderService;
+        this.pageAssembler = pageAssembler;
     }
 
     @GetMapping("/products")
@@ -103,17 +111,52 @@ public class PersonalController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-    @PostMapping("/create-order")
-    public ResponseEntity<Object> createAnOrder(@RequestBody OrderRequestDTO orderRequestDTO) {
+    @PostMapping("/create-order/user_id={customerId}")
+    public ResponseEntity<Object> createAnOrder(@PathVariable String customerId, @RequestBody OrderRequestDTO orderRequestDTO) {
         logger.info("PersonalController.createAnOrder()");
         logger.info("Post:/create-order");
-        OrderResponseDTO orderResponseDTO;
-        try {
-           orderResponseDTO =  orderService.createOrder(orderRequestDTO).get();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        // split order items based on merchant ids
+        if(orderRequestDTO.getOrderItemRequestDTOList().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(orderResponseDTO);
+        List<OrderResponseDTO> orderResponseDTOList = new ArrayList<>();
+        Map<String, List<OrderItemRequestDTO>> orderRequestDTOMap = new HashMap<>();
+        for(OrderItemRequestDTO orderItemRequestDTO : orderRequestDTO.getOrderItemRequestDTOList()) {
+            String merchantId = orderItemRequestDTO.getMerchantId();
+            if(orderRequestDTOMap.containsKey(merchantId)) {
+                orderRequestDTOMap.get(merchantId).add(orderItemRequestDTO);
+            } else {
+               List<OrderItemRequestDTO> orderItemRequestDTOList = new ArrayList<>();
+               orderItemRequestDTOList.add(orderItemRequestDTO);
+               orderRequestDTOMap.put(merchantId,orderItemRequestDTOList);
+            }
+        }
+        for(String merchantId : orderRequestDTOMap.keySet()) {
+            System.out.println(merchantId);
+        }
+        try {
+            for(String merchantId : orderRequestDTOMap.keySet()) {
+                orderResponseDTOList.add(orderService.createOrder(customerId, merchantId, new OrderRequestDTO(orderRequestDTOMap.get(merchantId))).get());
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(orderResponseDTOList);
+    }
+
+    @GetMapping("/fetchOrders/user_id={customerId}")
+    public ResponseEntity<Object> fetchOrders(@PathVariable String customerId, @RequestParam String page, @RequestParam String size) {
+        logger.info("PersonalController.fetchOrders()");
+        logger.info("/fetchOrders/user_id=" + customerId);
+        Page<OrderResponseDTO> orders = orderService.fetchOrderByCustomerId(Long.parseLong(customerId),Integer.parseInt(page), Integer.parseInt(size));
+        PagedModel<EntityModel<OrderResponseDTO>> pagedModel = pageAssembler.toModel(orders);
+        return ResponseEntity.ok(pagedModel);
+    }
+
+    @DeleteMapping("/deleteOrder/order_id={orderId}")
+    public ResponseEntity<Object> deleteOrder(@PathVariable String orderId) {
+        orderService.removeOrder(UUID.fromString(orderId));
+        return ResponseEntity.status(HttpStatus.OK).build();
     }
 
 }
