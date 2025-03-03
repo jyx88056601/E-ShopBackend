@@ -5,6 +5,7 @@ import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.CartItem;
 import com.jyx.eshopbackend.service.CartService;
 import com.jyx.eshopbackend.service.OrderService;
+import com.jyx.eshopbackend.service.PaymentService;
 import com.jyx.eshopbackend.service.ProductService;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -31,13 +32,16 @@ public class PersonalController {
 
     private final PagedResourcesAssembler<OrderResponseDTO> pageAssembler;
 
+    private final PaymentService paymentService;
 
 
-    public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> pageAssembler) {
+
+    public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> pageAssembler, PaymentService paymentService) {
         this.productService = productService;
         this.cartService = cartService;
         this.orderService = orderService;
         this.pageAssembler = pageAssembler;
+        this.paymentService = paymentService;
     }
 
     @GetMapping("/products")
@@ -157,6 +161,16 @@ public class PersonalController {
     public ResponseEntity<Object> deleteOrder(@PathVariable String orderId) {
         orderService.removeOrder(UUID.fromString(orderId));
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/payment/paypal/order_id={orderId}")
+    public ResponseEntity<Object> initializePayment(@PathVariable String orderId, @RequestBody InitializePaymentDTO initializePaymentDTO) {
+       String paymentMethod = initializePaymentDTO.getPaymentMethod();
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(paymentService.initializePayment(orderId,paymentMethod));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
 }

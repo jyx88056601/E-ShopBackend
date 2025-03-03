@@ -6,6 +6,7 @@ import com.jyx.eshopbackend.exception.PasswordNotMatchException;
 import com.jyx.eshopbackend.exception.UserDeletionFailedException;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.OrderRepository;
+import com.jyx.eshopbackend.persistence.PaymentRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
 import com.jyx.eshopbackend.persistence.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -25,13 +26,16 @@ public class AdminService {
 
     private final ProductRepository productRepository;
 
-    public AdminService(UserService userService, UserRepository userRepository, OrderRepository orderRepository, PasswordEncoder passwordEncoder, ProductRepository productRepository) {
+    private final PaymentRepository paymentRepository;
+
+    public AdminService(UserService userService, UserRepository userRepository, OrderRepository orderRepository, PasswordEncoder passwordEncoder, ProductRepository productRepository, PaymentRepository paymentRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
         this.passwordEncoder = passwordEncoder;
 
         this.productRepository = productRepository;
+        this.paymentRepository = paymentRepository;
     }
 
 
@@ -104,5 +108,9 @@ public class AdminService {
     public String deleteAllProduct() {
          productRepository.deleteAll();
          return "Products from database have been cleared";
+    }
+
+    public void deleteAllPayments() {
+        paymentRepository.deleteAll();
     }
 }

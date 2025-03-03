@@ -28,16 +28,17 @@ public class Payment {
 
     private LocalDateTime paymentDate;
 
+    @Column
+    private String paymentMethod;
+
+    @Column
+    private String TransactionId;
+
     public Payment() {
     }
 
     public Payment(Order order) {
         this.order = order;
-    }
-
-    @PrePersist
-    public void onCreate() {
-        status =  PaymentStatus.UNPAID;
     }
 
     public Long getId() {
@@ -58,6 +59,38 @@ public class Payment {
 
     public LocalDateTime getPaymentDate() {
         return paymentDate;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public void setStatus(PaymentStatus status) {
+        this.status = status;
+    }
+
+    public void setPaymentDate(LocalDateTime paymentDate) {
+        this.paymentDate = paymentDate;
+    }
+
+    public String getTransactionId() {
+        return TransactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        TransactionId = transactionId;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 }
 

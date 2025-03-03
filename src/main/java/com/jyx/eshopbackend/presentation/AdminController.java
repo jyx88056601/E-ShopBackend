@@ -124,5 +124,11 @@ public class AdminController {
         return response.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.noContent().build());
     }
 
+    @DeleteMapping("/delete-all-payments")
+    public ResponseEntity<String> deleteAllPayments() {
+       adminService.deleteAllPayments();
+       return ResponseEntity.ok("all payments have been deleted");
+    }
+
 
 }
