@@ -5,15 +5,19 @@ import com.jyx.eshopbackend.model.Payment;
 import java.util.List;
 
 public class PaymentResponseDTO {
-    private final String paymentId;
-    private final String amount;
-    private final String paymentDate;
+    private String paymentId;
+    private String amount;
+    private String paymentDate;
 
     private final String paymentStatus;
 
     private String paymentMethod;
 
     List<PaypalTransactionResponseDTO.Link> links;
+
+    public PaymentResponseDTO(String paymentStatus) {
+        this.paymentStatus = paymentStatus;
+    }
 
     public PaymentResponseDTO(Payment payment) {
         this.paymentId = String.valueOf(payment.getId());
