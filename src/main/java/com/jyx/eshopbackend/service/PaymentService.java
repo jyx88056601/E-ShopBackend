@@ -18,17 +18,13 @@ public class PaymentService {
     // 创建支付
     @Async
     public CompletableFuture<PaymentResponseDTO> createPayment(String orderId, String paymentMethod) {
-        System.out.println("Payment method: " + paymentMethod);
-
         return paypalService.initializePayment(orderId)
                 .thenApply(paymentResponseDTO -> {
                     System.out.println("Payment Response: " + paymentResponseDTO);
                     return paymentResponseDTO;
                 })
                 .exceptionally(ex -> {
-                    // 记录错误日志
                     System.err.println("Payment initialization failed: " + ex.getMessage());
-                    // 在发生异常时返回一个带有错误信息的默认值
                     return new PaymentResponseDTO("Error" + "Payment initialization failed");
                 });
     }

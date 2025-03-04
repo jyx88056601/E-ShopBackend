@@ -10,6 +10,7 @@ import com.jyx.eshopbackend.persistence.PaymentRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -36,8 +37,9 @@ public class PaypalService {
         this.paymentRepository = paymentRepository;
     }
 
-    // 获取 PayPal 访问令牌
+    @Async
     public CompletableFuture<String> getPayPalAccessToken() {
+
         String auth = clientId + ":" + clientSecret;
         String encodedAuth = new String(java.util.Base64.getEncoder().encode(auth.getBytes()));
         return paypalWebClient.post()
@@ -59,23 +61,25 @@ public class PaypalService {
                 });
     }
 
-    // 初始化支付
+
+    @Async
     public CompletableFuture<PaymentResponseDTO> initializePayment(String orderId) {
+
         var order = orderRepository.findById(UUID.fromString(orderId))
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         Payment payment = paymentRepository.findPaymentByOrder_Id(UUID.fromString(orderId))
                 .orElseGet(() -> {
                     Payment newPayment = initializePayment(order);
-                    paymentRepository.save(newPayment);  // 保存新创建的支付记录
+                    paymentRepository.save(newPayment);
                     return newPayment;
                 });
 
-        payment.setPaymentMethod("PAYPAL");
 
         return getPayPalAccessToken()
                 .thenCompose(token -> createTransaction(token, String.valueOf(payment.getAmount())))
                 .thenApply(paypalTransactionResponseDTO -> {
+
                     payment.setTransactionId(paypalTransactionResponseDTO.getId());
                     payment.setStatus(PaymentStatus.PENDING);
                     payment.setPaymentDate(LocalDateTime.now());
@@ -93,7 +97,7 @@ public class PaypalService {
                 });
     }
 
-    // 创建支付记录
+
     private Payment initializePayment(Order order) {
         Payment payment = new Payment();
         payment.setAmount(order.getTotalAmount());
@@ -101,7 +105,7 @@ public class PaypalService {
         return payment;
     }
 
-    // 创建 PayPal 交易
+    @Async
     public CompletableFuture<PaypalTransactionResponseDTO> createTransaction(String token, String amount) {
         String requestBody = "{" +
                 "\"intent\": \"AUTHORIZE\"," +
@@ -142,12 +146,16 @@ public class PaypalService {
                 .retrieve()
                 .bodyToMono(PaypalTransactionResponseDTO.class)
                 .toFuture()
+                .thenApply(paypalTransactionResponseDTO -> {
+                    return paypalTransactionResponseDTO;
+                })
                 .exceptionally(throwable -> {
                     throw new RuntimeException("Error creating PayPal transaction", throwable);
                 });
     }
 
-    // 交易验证（可选）
+
+    @Async
     public CompletableFuture<PaypalTransactionResponseDTO> verifyTransaction(String transactionId) {
         return getPayPalAccessToken()
                 .thenCompose(token -> paypalWebClient.post()

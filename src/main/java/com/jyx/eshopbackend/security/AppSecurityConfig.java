@@ -76,7 +76,10 @@ public class AppSecurityConfig {
                         .logoutSuccessUrl("/")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
-                        .deleteCookies("JSESSIONID")         // 删除指定的 Cookie（如 Session ID）
+                        .deleteCookies("JSESSIONID")
+                )
+                .securityContext(securityContext -> securityContext
+                        .requireExplicitSave(false)
                 )
                 .build();
     }

@@ -30,4 +30,11 @@ public class EShopBackendApplicationConfig {
                 .build();
     }
 
+//    @Bean
+//    public InitializingBean initializingBean() {
+//        return () -> {
+//            SecurityContextHolder.setStrategyName(SecurityContextHolder.MODE_INHERITABLETHREADLOCAL);
+//        };
+//    }
+
 }

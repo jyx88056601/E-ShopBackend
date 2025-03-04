@@ -164,7 +164,7 @@ public class PersonalController {
         return ResponseEntity.status(HttpStatus.OK).build();
     }
 
-//    @PostMapping("/payment/paypal/order_id={orderId}")
+//    @PostMapping("/payment/paypal/orderId/{orderId}")
 //    public ResponseEntity<Object> initializePayment(@PathVariable String orderId, @RequestBody InitializePaymentDTO initializePaymentDTO) {
 //       String paymentMethod = initializePaymentDTO.getPaymentMethod();
 //        try {
@@ -175,15 +175,13 @@ public class PersonalController {
 //    }
 
 
-
-    @PostMapping("/payment/paypal/order_id={orderId}")
+    @PostMapping("/payment/paypal/orderId/{orderId}")
     public CompletableFuture<ResponseEntity<PaymentResponseDTO>> initializePayment(
             @PathVariable String orderId,
             @RequestBody InitializePaymentDTO initializePaymentDTO) {
         String paymentMethod = initializePaymentDTO.getPaymentMethod();
         return paymentService.createPayment(orderId, paymentMethod)
                 .thenApply(response -> {
-                    System.out.println(response);
                     return ResponseEntity.ok().body(response);
                 })
                 .exceptionally(throwable ->
