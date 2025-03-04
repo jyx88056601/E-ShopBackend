@@ -3,7 +3,9 @@ package com.jyx.eshopbackend.service;
 import com.jyx.eshopbackend.dto.OrderItemDTO;
 import com.jyx.eshopbackend.dto.OrderRequestDTO;
 import com.jyx.eshopbackend.dto.OrderResponseDTO;
-import com.jyx.eshopbackend.model.*;
+import com.jyx.eshopbackend.model.Order;
+import com.jyx.eshopbackend.model.OrderItem;
+import com.jyx.eshopbackend.model.OrderStatus;
 import com.jyx.eshopbackend.persistence.OrderRepository;
 import com.jyx.eshopbackend.persistence.PaymentRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
@@ -11,6 +13,7 @@ import com.jyx.eshopbackend.persistence.ShipmentRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,9 +80,9 @@ public class OrderService {
     }
 
     public Page<OrderResponseDTO> fetchOrderByCustomerId(Long customerId, int page, int size) {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Order> orderPage = orderRepository.findByCustomerId(customerId, pageable);
-            return orderPage.map(OrderResponseDTO::new);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("orderCreatedTime")));
+        Page<Order> orderPage = orderRepository.findByCustomerId(customerId, pageable);
+        return orderPage.map(OrderResponseDTO::new);
     }
     public void removeOrder(UUID orderId) {
         orderRepository.deleteById(orderId);
