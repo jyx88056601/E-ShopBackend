@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -40,14 +42,15 @@ public class User {
     @Column(nullable = false)
     private boolean isActive;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @PrimaryKeyJoinColumn
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL,orphanRemoval = true, fetch = FetchType.EAGER)
     @JsonIgnore
     private Cart cart;
 
 
     // store addresses ids in a list for business account
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_address_ids", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "address_id")
     private List<Long> addressIds = new ArrayList<>();
 
     public List<Long> getAddressIds() {
@@ -56,9 +59,9 @@ public class User {
 
     // store updated products ids in a list for business account
     @ElementCollection(fetch = FetchType.EAGER)
-    private List<Long> productIds = new ArrayList<>();
+    private Set<Long> productIds = new HashSet<>();
 
-    public List<Long> getProductIds() {
+    public Set<Long> getProductIds() {
         return productIds;
     }
 

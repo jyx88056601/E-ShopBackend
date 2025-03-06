@@ -3,6 +3,7 @@ package com.jyx.eshopbackend.presentation;
 import com.jyx.eshopbackend.dto.*;
 import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.CartItem;
+import com.jyx.eshopbackend.model.Payment;
 import com.jyx.eshopbackend.service.CartService;
 import com.jyx.eshopbackend.service.OrderService;
 import com.jyx.eshopbackend.service.PaymentService;
@@ -14,6 +15,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -31,17 +33,20 @@ public class PersonalController {
 
     private final OrderService orderService;
 
-    private final PagedResourcesAssembler<OrderResponseDTO> pageAssembler;
+    private final PagedResourcesAssembler<OrderResponseDTO> orderPageAssembler;
+
+    private final PagedResourcesAssembler<ProductDetailDTO> productDetailPageAssembler;
 
     private final PaymentService paymentService;
 
 
 
-    public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> pageAssembler, PaymentService paymentService) {
+    public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> OrderPageAssembler, PagedResourcesAssembler<ProductDetailDTO> productDetailPageAssembler , PaymentService paymentService) {
         this.productService = productService;
         this.cartService = cartService;
         this.orderService = orderService;
-        this.pageAssembler = pageAssembler;
+        this.orderPageAssembler = OrderPageAssembler;
+        this.productDetailPageAssembler = productDetailPageAssembler;
         this.paymentService = paymentService;
     }
 
@@ -56,7 +61,8 @@ public class PersonalController {
             logger.warn("Catch Exception while fetching data from database");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
-        return ResponseEntity.status(HttpStatus.OK).body(productPage);
+        PagedModel<EntityModel<ProductDetailDTO>> pagedModel = productDetailPageAssembler.toModel(productPage);
+        return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     }
 
     @GetMapping("/product/{id}")
@@ -154,7 +160,7 @@ public class PersonalController {
         logger.info("PersonalController.fetchOrders()");
         logger.info("/fetchOrders/user_id=" + customerId);
         Page<OrderResponseDTO> orders = orderService.fetchOrderByCustomerId(Long.parseLong(customerId),Integer.parseInt(page), Integer.parseInt(size));
-        PagedModel<EntityModel<OrderResponseDTO>> pagedModel = pageAssembler.toModel(orders);
+        PagedModel<EntityModel<OrderResponseDTO>> pagedModel = orderPageAssembler.toModel(orders);
         return ResponseEntity.ok(pagedModel);
     }
 
@@ -163,16 +169,6 @@ public class PersonalController {
         orderService.removeOrder(UUID.fromString(orderId));
         return ResponseEntity.status(HttpStatus.OK).build();
     }
-
-//    @PostMapping("/payment/paypal/orderId/{orderId}")
-//    public ResponseEntity<Object> initializePayment(@PathVariable String orderId, @RequestBody InitializePaymentDTO initializePaymentDTO) {
-//       String paymentMethod = initializePaymentDTO.getPaymentMethod();
-//        try {
-//            return ResponseEntity.status(HttpStatus.OK).body(paymentService.createPayment(orderId,paymentMethod).join());
-//        } catch (Exception e) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-//        }
-//    }
 
 
     @PostMapping("/payment/paypal/orderId/{orderId}")
@@ -189,5 +185,34 @@ public class PersonalController {
                 );
     }
 
+    @GetMapping("/payment/paypal/orderId/{orderId}")
+    public CompletableFuture<ResponseEntity<PaymentResponseDTO>> verifyPayment(@PathVariable String orderId) {
+       try {
+           return paymentService.verifyPayment(orderId, "paypal")
+                   .thenApply(response -> {
+                       return ResponseEntity.status(HttpStatus.OK).body(response);
+                   })
+                   .exceptionally(throwable ->
+                           ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new PaymentResponseDTO(throwable.getMessage()))
+                   );
+       } catch (Exception e) {
+            return CompletableFuture.completedFuture(ResponseEntity.badRequest().body(new PaymentResponseDTO(e.getMessage())));
+       }
+    }
 
+    @GetMapping("/payment/status/{orderId}")
+    @Transactional
+    public ResponseEntity<Object> isPayable(@PathVariable String orderId) {
+        if(orderService.findOrderById(orderId).isEmpty()) {
+            return  ResponseEntity.status(HttpStatus.OK).body("No order found with orderId = " + orderId);
+        }
+        Payment payment = orderService.findOrderById(orderId).get().getPayment();
+        if(payment == null) {
+            return  ResponseEntity.status(HttpStatus.OK).body("No payment record found with orderId = " + orderId);
+        }
+           if(paymentService.isPaid(orderId)) {
+               return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("already paid");
+           }
+          return  ResponseEntity.status(HttpStatus.OK).body("No payment record found with orderId = " + orderId);
+    }
 }

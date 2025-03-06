@@ -41,7 +41,7 @@ public class ProductImage {
         this.product = product;
     }
 
-    public Boolean getMain() {
+    public Boolean isMain() {
         return isMain;
     }
 

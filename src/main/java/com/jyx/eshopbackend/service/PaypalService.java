@@ -2,6 +2,7 @@ package com.jyx.eshopbackend.service;
 
 import com.jyx.eshopbackend.dto.PaymentResponseDTO;
 import com.jyx.eshopbackend.dto.PaypalTransactionResponseDTO;
+import com.jyx.eshopbackend.dto.PaypalVerificationResponseDTO;
 import com.jyx.eshopbackend.model.Order;
 import com.jyx.eshopbackend.model.Payment;
 import com.jyx.eshopbackend.model.PaymentStatus;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.LocalDateTime;
@@ -100,6 +102,7 @@ public class PaypalService {
 
     private Payment initializePayment(Order order) {
         Payment payment = new Payment();
+        payment.setStatus(PaymentStatus.PENDING);
         payment.setAmount(order.getTotalAmount());
         payment.setOrder(order);
         return payment;
@@ -146,9 +149,6 @@ public class PaypalService {
                 .retrieve()
                 .bodyToMono(PaypalTransactionResponseDTO.class)
                 .toFuture()
-                .thenApply(paypalTransactionResponseDTO -> {
-                    return paypalTransactionResponseDTO;
-                })
                 .exceptionally(throwable -> {
                     throw new RuntimeException("Error creating PayPal transaction", throwable);
                 });
@@ -156,17 +156,19 @@ public class PaypalService {
 
 
     @Async
-    public CompletableFuture<PaypalTransactionResponseDTO> verifyTransaction(String transactionId) {
+    @Transactional
+    public CompletableFuture<PaypalVerificationResponseDTO> verifyTransaction(String transactionId) {
         return getPayPalAccessToken()
                 .thenCompose(token -> paypalWebClient.post()
-                        .uri("/v2/checkout/orders/" + transactionId + "/capture")
+                        .uri("/v2/checkout/orders/" + transactionId + "/authorize")
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .retrieve()
-                        .bodyToMono(PaypalTransactionResponseDTO.class)
+                        .bodyToMono(PaypalVerificationResponseDTO.class)
                         .toFuture())
                 .exceptionally(throwable -> {
                     throw new RuntimeException("Transaction verification failed for ID: " + transactionId, throwable);
                 });
     }
+
 }

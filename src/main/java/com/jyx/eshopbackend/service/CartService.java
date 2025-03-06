@@ -7,7 +7,6 @@ import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.CartItem;
 import com.jyx.eshopbackend.persistence.CartRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
-import com.jyx.eshopbackend.persistence.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +18,10 @@ public class CartService {
 
     private final ProductRepository productRepository;
 
-     private final UserRepository userRepository;
-
-    public CartService(CartRepository cartRepository, ProductRepository productRepository, UserRepository userRepository) {
+    public CartService(CartRepository cartRepository, ProductRepository productRepository) {
         this.cartRepository = cartRepository;
         this.productRepository = productRepository;
 
-        this.userRepository = userRepository;
     }
 
     public Optional<Cart> findCartById(Long id) {
@@ -35,15 +31,11 @@ public class CartService {
     @Transactional
     public Optional<Cart> addToCart(CartRequestDTO cartRequestDTO) {
         Long id = Long.parseLong(cartRequestDTO.getCartId());
-
-
         Cart cart = cartRepository.findCartByUser_Id(id)
                 .orElseThrow(() -> new NotFoundException("No cart found"));
-
-
-        Map<Long, CartItem> cartItemMap = new HashMap<>();
+        Map<Long, CartItem> existingCartItemsMap = new HashMap<>();
         for (CartItem cartItem : cart.getCartItems()) {
-            cartItemMap.put(cartItem.getProduct().getId(), cartItem);
+            existingCartItemsMap.put(cartItem.getProduct().getId(), cartItem);
         }
 
         List<CartItemRequestDTO> cartItemRequestDTOList = cartRequestDTO.getProductRequestDTO();
@@ -51,26 +43,27 @@ public class CartService {
             Long productId = Long.parseLong(cartItemRequestDTO.getProduct_id());
             int quantity = Integer.parseInt(cartItemRequestDTO.getQuantity());
 
-            if (cartItemMap.containsKey(productId)) {
-
-                cartItemMap.get(productId).setQuantity(quantity);
+            if (existingCartItemsMap.containsKey(productId)) {
+                 existingCartItemsMap.get(productId).setQuantity(quantity);
             } else {
-
                 CartItem cartItem = new CartItem();
                 cartItem.setProduct(productRepository.findById(productId)
                         .orElseThrow(() -> new RuntimeException("No product found")));
                 cartItem.setQuantity(quantity);
                 cartItem.setCart(cart);
-                cartItemMap.put(productId, cartItem);
+                existingCartItemsMap.put(productId, cartItem);
             }
         }
+        for(CartItem cartItem : cart.getCartItems()) {
+           cartItem.setQuantity(existingCartItemsMap.get(cartItem.getProduct().getId()).getQuantity());
+           existingCartItemsMap.remove(cartItem.getProduct().getId());
+        }
+        for(CartItem cartItem: existingCartItemsMap.values()) {
+            cart.getCartItems().add(cartItem);
+        }
 
-
-        cart.getCartItems().clear();
-        cart.getCartItems().addAll(cartItemMap.values());
-
-
-        return Optional.of(cartRepository.save(cart));
+         var result  = cartRepository.save(cart);
+        return Optional.of( result);
     }
 
     @Transactional

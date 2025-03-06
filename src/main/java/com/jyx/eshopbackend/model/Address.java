@@ -10,6 +10,7 @@ public class Address {
     @Column(name = "address_id")
     private Long id;
 
+
     @Column(nullable = false)
     private String recipientName;
 

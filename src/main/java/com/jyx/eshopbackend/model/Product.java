@@ -117,10 +117,6 @@ public class Product {
         return createdTime;
     }
 
-    public void setCreatedTime(LocalDateTime createdTime) {
-        this.createdTime = createdTime;
-    }
-
     public String getCategory() {
         return category;
     }

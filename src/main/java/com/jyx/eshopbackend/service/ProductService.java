@@ -9,6 +9,7 @@ import com.jyx.eshopbackend.model.ProductImage;
 import com.jyx.eshopbackend.model.User;
 import com.jyx.eshopbackend.persistence.ProductImageRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
+import com.jyx.eshopbackend.persistence.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,10 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ProductService {
@@ -28,17 +26,23 @@ public class ProductService {
     private final ProductImageRepository productImageRepository;
     private final UserService userService;
     private final S3Service s3Service;
+    private final UserRepository userRepository;
+
+
 
     // Constructor to inject dependencies
     public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository,
-                          UserService userService, S3Service s3Service) {
+                          UserService userService, S3Service s3Service,
+                          UserRepository userRepository) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.userService = userService;
         this.s3Service = s3Service;
+        this.userRepository = userRepository;
     }
 
     // Find products by ownerId
+    @Transactional
     public Page<ProductDetailDTO> findProductsByOwnerId(String ownerId, String page, String size) {
         int pageNumber = Integer.parseInt(page);
         int pageSize = Integer.parseInt(size);
@@ -50,9 +54,9 @@ public class ProductService {
         User user = userService.findUserById(Long.parseLong(ownerId))
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid user id"));
 
-        List<Long> productIds = user.getProductIds();
+        Set<Long> productIds = user.getProductIds();
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Product> products = productRepository.findByIdIn(productIds, pageable);
+        Page<Product> products = productRepository.findByIdIn(new ArrayList<>(productIds), pageable);
         return products.map(ProductDetailDTO::new);
     }
 
@@ -104,22 +108,29 @@ public class ProductService {
     }
 
     // Remove product and its images from database and AWS
+   @Transactional
     public String removeProduct(Long productId) {
-        StringBuilder sb = new StringBuilder();
 
         // Find product from the database
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NoSuchElementException("Product not found"));
 
-        // Delete product images from AWS
-        for (ProductImage productImage : product.getProductImages()) {
-            String url = productImage.getUrl();
-            String fileName = url.split("amazonaws.com/")[1];
-            sb.append(s3Service.removeFile(fileName)); // Remove file from S3
-        }
+        // remove from business account product list
+        Long ownerId = product.getOwnerId();
+         var user = userRepository.findById(ownerId).orElseThrow(() -> new RuntimeException("no user found"));
+         user.getProductIds().remove(productId);
+         userService.updateUser(user);
 
-        // Delete product from MySQL database
-        productRepository.deleteById(productId);
+       // Delete product images from AWS
+       StringBuilder sb = new StringBuilder();
+       for (ProductImage productImage : product.getProductImages()) {
+           String url = productImage.getUrl();
+           String fileName = url.split("amazonaws.com/")[1];
+           sb.append(s3Service.removeFile(fileName)); // Remove file from S3
+       }
+
+       // Delete product from MySQL database
+       productRepository.deleteById(productId);
 
         return "Product with ID " + productId + " has been deleted. AWS server alert: " + sb;
     }

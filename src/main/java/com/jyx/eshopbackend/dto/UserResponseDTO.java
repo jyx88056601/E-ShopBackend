@@ -18,9 +18,6 @@ public class UserResponseDTO extends UserDTO{
     private boolean isActive;
 
 
-
-    private Cart cart;
-
     private LocalDateTime registrationTime;
 
 
@@ -40,7 +37,6 @@ public class UserResponseDTO extends UserDTO{
         this.isActive = user.isActive();
         this.email = user.getEmail();
         this.phoneNumber = user.getPhoneNumber();
-        this.cart = user.getCart();
         this.role = user.getRole();
         this.registrationTime = user.getRegistrationTime();
         this.lastUpdatedDate = user.getLastUpdatedDate();
@@ -68,10 +64,6 @@ public class UserResponseDTO extends UserDTO{
 
     public List<Order> getOrders() {
         return orders;
-    }
-
-    public Cart getCart() {
-        return cart;
     }
 
     public List<Address> getAddresses() {

@@ -87,4 +87,12 @@ public class OrderService {
     public void removeOrder(UUID orderId) {
         orderRepository.deleteById(orderId);
     }
+
+    public Optional<Order> findOrderById(String orderId) {
+         return orderRepository.findById(UUID.fromString(orderId));
+    }
+
+    public void updateOrder(Order order) {
+        orderRepository.save(order);
+    }
 }
