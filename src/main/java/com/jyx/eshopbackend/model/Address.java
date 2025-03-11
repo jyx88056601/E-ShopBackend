@@ -10,7 +10,6 @@ public class Address {
     @Column(name = "address_id")
     private Long id;
 
-
     @Column(nullable = false)
     private String recipientName;
 
@@ -46,5 +45,21 @@ public class Address {
     @Column(nullable = false)
     private String postalCode;
 
-
+    @Override
+    public String toString() {
+        return "Address{" +
+                "recipientName='" + recipientName + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", HouseNumber='" + HouseNumber + '\'' +
+                ", buildingNumber='" + buildingNumber + '\'' +
+                ", unitNumber='" + unitNumber + '\'' +
+                ", streetName='" + streetName + '\'' +
+                ", community='" + community + '\'' +
+                ", district='" + district + '\'' +
+                ", city='" + city + '\'' +
+                ", province='" + province + '\'' +
+                ", country='" + country + '\'' +
+                ", postalCode='" + postalCode + '\'' +
+                '}';
+    }
 }

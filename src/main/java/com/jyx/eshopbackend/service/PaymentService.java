@@ -53,6 +53,7 @@ public class PaymentService {
             return paypalService.verifyTransaction(payment.getTransactionId())
                     .thenApply(paypalVerificationResponseDTO ->{
                         payment.setStatus(PaymentStatus.COMPLETED);
+                        payment.setPaymentMethod(paymentMethod);
                         order.setOrderStatus(OrderStatus.PAID);
                         payment.setOrder(order);
                         order.setPayment(payment);

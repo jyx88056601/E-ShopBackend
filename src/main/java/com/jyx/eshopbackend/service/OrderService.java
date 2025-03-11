@@ -1,5 +1,7 @@
 package com.jyx.eshopbackend.service;
 
+import com.amazonaws.services.kms.model.NotFoundException;
+import com.jyx.eshopbackend.dto.OrderDetailDTO;
 import com.jyx.eshopbackend.dto.OrderItemDTO;
 import com.jyx.eshopbackend.dto.OrderRequestDTO;
 import com.jyx.eshopbackend.dto.OrderResponseDTO;
@@ -43,7 +45,7 @@ public class OrderService {
     @Transactional
     public Optional<OrderResponseDTO> createOrder(String customerId, String merchantId, OrderRequestDTO orderRequestDTO)   {
         Order order = new Order();
-        order.setOrderNumber(customerId + LocalDateTime.now() + merchantId);
+        order.setOrderNumber(customerId + "-" + LocalDateTime.now() + "-" + merchantId);
         order.setOrderStatus(OrderStatus.UNPAID);
         order.setCustomerId(Long.parseLong(customerId));
         order.setMerchantId(Long.parseLong(merchantId));
@@ -90,6 +92,51 @@ public class OrderService {
 
     public Optional<Order> findOrderById(String orderId) {
          return orderRepository.findById(UUID.fromString(orderId));
+    }
+
+    @Transactional
+    public Optional<OrderDetailDTO> fetchOrderDetails(String orderId) {
+        var order = findOrderById(orderId).orElseThrow(() -> new NotFoundException("No order found"));
+        OrderDetailDTO orderDetailDTO = new OrderDetailDTO(order);
+        List<OrderItem> orderItemList = order.getOrderItems();
+        StringBuilder orderItems = new StringBuilder();
+        for (var orderItem : orderItemList) {
+
+
+            var product = productRepository.findById(orderItem.getProductId())
+                    .orElseThrow(() -> new NotFoundException("No order found"));
+            orderItems.append(product.getMainPictureUrl().replace("https://e-commerce-shop-ethan-jiang.s3.us-west-2.amazonaws.com/",
+                            "https://e-commerce-shop-ethan-jiang.s3.us-west-2.amazonaws.com/product/"))
+                    .append("#")
+                    .append(product.getName())
+                    .append("#")
+                    .append(orderItem.getQuantity())
+                    .append("#")
+                    .append(orderItem.getPrice())
+                    .append("#")
+                    .append(orderItem.getTotalPrice())
+                    .append("~");
+        }
+
+        // Remove the last '~' if present
+        if (!orderItems.isEmpty() && orderItems.charAt(orderItems.length() - 1) == '~') {
+            orderItems.deleteCharAt(orderItems.length() - 1);
+        }
+        // set up payment details if there is a record
+        orderDetailDTO.setOrderItems(orderItems.toString());
+        String paymentDetail = paymentRepository.findPaymentByOrder_Id(UUID.fromString(orderId))
+                .map(payment -> payment.getPaymentDate() + "#" + payment.getTransactionId() +
+                        "#" + payment.getStatus() + "#" + payment.getPaymentMethod())
+                .orElse("No payment found");
+        orderDetailDTO.setPaymentDetail(paymentDetail);
+
+        // set up shipment details if there is a record
+        String ShipmentDetail = shipmentRepository.findShipmentByOrder_Id(UUID.fromString(orderId))
+                .map(shipment -> shipment.getTrackingNumber() + "#" + shipment.getStatus() + "#" + shipment.getShippedDate() + "#"
+                + shipment.getAddress().toString())
+                .orElse("No shipment found");
+        orderDetailDTO.setShipmentDetail(ShipmentDetail);
+        return Optional.of(orderDetailDTO);
     }
 
     public void updateOrder(Order order) {

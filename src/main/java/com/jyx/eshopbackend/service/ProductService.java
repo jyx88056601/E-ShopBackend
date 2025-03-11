@@ -152,4 +152,32 @@ public class ProductService {
          return productRepository.findById(id).map(ProductDetailDTO::new);
     }
 
+
+    // dynamic query by Criteria API
+/*    public void fetchProductsByCategory() {
+          var products = productRepository.findProductsByCriteria(null, BigDecimal.ZERO, BigDecimal.valueOf(100000));
+          products.forEach((product) -> System.out.println(product.getName()));
+      } */
+
+
+//    public void fetchProductsBySpecification(String name, BigDecimal minPrice, BigDecimal maxPrice) {
+//        Specification<Product> spec = Specification.where(null);
+//        if(name != null) {
+//            spec = spec.and(ProductSpec.hasName(name));
+//        }
+//
+//        if(minPrice != null) {
+//            spec = spec.and(ProductSpec.hasPriceGreaterThanOrEqualTo(minPrice));
+//        }
+//
+//        if(maxPrice != null) {
+//            spec = spec.and(ProductSpec.hasPriceLessThanOrEqualTo(maxPrice));
+//        }
+//
+//         productRepository.findAll(spec).forEach(product -> {
+//             System.out.println(product.getName());
+//         });
+//    }
+
+
 }

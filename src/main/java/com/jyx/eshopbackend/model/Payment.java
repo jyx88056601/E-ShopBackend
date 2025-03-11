@@ -32,7 +32,7 @@ public class Payment {
     private String paymentMethod;
 
     @Column
-    private String TransactionId;
+    private String transactionId;
 
     public Payment() {
     }
@@ -78,11 +78,11 @@ public class Payment {
     }
 
     public String getTransactionId() {
-        return TransactionId;
+        return transactionId;
     }
 
     public void setTransactionId(String transactionId) {
-        TransactionId = transactionId;
+        this.transactionId = transactionId;
     }
 
     public String getPaymentMethod() {

@@ -215,4 +215,17 @@ public class PersonalController {
            }
           return  ResponseEntity.status(HttpStatus.OK).body("No payment record found with orderId = " + orderId);
     }
+
+
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<Object> fetchOrderDetail(@PathVariable String orderId) {
+        logger.info("GET:/order/"+orderId);
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(orderService.fetchOrderDetails(orderId).get());
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+
+    }
 }
