@@ -81,6 +81,14 @@ public class User {
         return id;
     }
 
+    public void setAddressIds(List<Long> addressIds) {
+        this.addressIds = addressIds;
+    }
+
+    public void setProductIds(Set<Long> productIds) {
+        this.productIds = productIds;
+    }
+
     public String getUsername() {
         return username;
     }

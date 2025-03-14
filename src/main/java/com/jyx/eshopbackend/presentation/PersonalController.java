@@ -4,10 +4,8 @@ import com.jyx.eshopbackend.dto.*;
 import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.CartItem;
 import com.jyx.eshopbackend.model.Payment;
-import com.jyx.eshopbackend.service.CartService;
-import com.jyx.eshopbackend.service.OrderService;
-import com.jyx.eshopbackend.service.PaymentService;
-import com.jyx.eshopbackend.service.ProductService;
+import com.jyx.eshopbackend.persistence.UserRepository;
+import com.jyx.eshopbackend.service.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -39,15 +37,23 @@ public class PersonalController {
 
     private final PaymentService paymentService;
 
+    private final AddressService addressService;
+
+    public final ShipmentService shipmentService;
+    private final UserRepository userRepository;
 
 
-    public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> OrderPageAssembler, PagedResourcesAssembler<ProductDetailDTO> productDetailPageAssembler , PaymentService paymentService) {
+    public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> OrderPageAssembler, PagedResourcesAssembler<ProductDetailDTO> productDetailPageAssembler , PaymentService paymentService, AddressService addressService, ShipmentService shipmentService,
+                              UserRepository userRepository) {
         this.productService = productService;
         this.cartService = cartService;
         this.orderService = orderService;
         this.orderPageAssembler = OrderPageAssembler;
         this.productDetailPageAssembler = productDetailPageAssembler;
         this.paymentService = paymentService;
+        this.addressService = addressService;
+        this.shipmentService = shipmentService;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("/products")
@@ -226,6 +232,53 @@ public class PersonalController {
         catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+    }
 
+
+    @PostMapping("/address/{userId}")
+    public ResponseEntity<String> storeNewAddress(@PathVariable String userId, @RequestBody CreatingAddressRequestDTO creatingAddressRequestDTO) {
+        logger.info("POST:" + "/address/" + userId);
+        try {
+            var response = addressService.storeNewAddress(creatingAddressRequestDTO, Long.parseLong(userId));
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @GetMapping("/address/{userId}")
+    public ResponseEntity<Object> getAllAddress(@PathVariable String userId) {
+        logger.info("GET:" + "/address/" + userId);
+        try {
+            var response = addressService.fetchAddress(Long.parseLong(userId));
+
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/shipment/buildShipment")
+    public ResponseEntity<Object> buildShipment(@RequestBody ShipmentRequestDTO shipmentRequestDTO) {
+        logger.info("POST:/shipment/buildShipment");
+       try {
+           return ResponseEntity.status(HttpStatus.OK).body(shipmentService.InitializeShipment(Long.parseLong(shipmentRequestDTO.getAddressId()), shipmentRequestDTO.getOrderId()));
+       } catch (Exception e) {
+           System.out.println(e.getMessage());
+           System.out.println(e.getCause());
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+       }
+    }
+
+    @GetMapping("/seller/contact{userId}")
+    public ResponseEntity<String> getSellerInfo(@PathVariable String userId) {
+       var sellerOptional =  userRepository.findById(Long.parseLong(userId));
+       if(sellerOptional.isEmpty()) {
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+       }
+       var seller = sellerOptional.get();
+       String response = seller.getUsername() + "#" + seller.getPhoneNumber() + "#" + seller.getEmail();
+       return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

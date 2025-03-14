@@ -19,7 +19,7 @@ public class Shipment {
     @JsonBackReference
     private Order order;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "address_id", nullable = false)
     private Address address;
 
@@ -61,6 +61,25 @@ public class Shipment {
 
     public ShipmentStatus getStatus() {
         return status;
+    }
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
+    }
+
+    public void setTrackingNumber(String trackingNumber) {
+        this.trackingNumber = trackingNumber;
+    }
+
+    public void setShippedDate(LocalDateTime shippedDate) {
+        this.shippedDate = shippedDate;
+    }
+
+    public void setStatus(ShipmentStatus status) {
+        this.status = status;
     }
 }
 
