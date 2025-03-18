@@ -21,5 +21,4 @@ public interface ProductRepository extends JpaRepository<Product, Long>, Product
     @Override
     @NonNull
     Page<Product> findAll(@NonNull Pageable pageable);
-
 }

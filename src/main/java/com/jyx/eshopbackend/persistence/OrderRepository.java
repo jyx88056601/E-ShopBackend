@@ -21,4 +21,5 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     Page<Order> findByMerchantId(Long merchantId, Pageable pageable);
 
     Page<Order> findByCustomerId(Long customerId, Pageable pageable);
+
 }

@@ -4,14 +4,13 @@ import com.jyx.eshopbackend.dto.UserResponseDTO;
 import com.jyx.eshopbackend.dto.UserUpdateDTO;
 import com.jyx.eshopbackend.exception.PasswordNotMatchException;
 import com.jyx.eshopbackend.exception.UserDeletionFailedException;
+import com.jyx.eshopbackend.model.Order;
 import com.jyx.eshopbackend.model.User;
-import com.jyx.eshopbackend.persistence.OrderRepository;
-import com.jyx.eshopbackend.persistence.PaymentRepository;
-import com.jyx.eshopbackend.persistence.ProductRepository;
-import com.jyx.eshopbackend.persistence.UserRepository;
+import com.jyx.eshopbackend.persistence.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,8 +26,10 @@ public class AdminService {
     private final ProductRepository productRepository;
 
     private final PaymentRepository paymentRepository;
+    private final ShipmentRepository shipmentRepository;
 
-    public AdminService(UserService userService, UserRepository userRepository, OrderRepository orderRepository, PasswordEncoder passwordEncoder, ProductRepository productRepository, PaymentRepository paymentRepository) {
+    public AdminService(UserService userService, UserRepository userRepository, OrderRepository orderRepository, PasswordEncoder passwordEncoder, ProductRepository productRepository, PaymentRepository paymentRepository,
+                        ShipmentRepository shipmentRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.orderRepository = orderRepository;
@@ -36,6 +37,7 @@ public class AdminService {
 
         this.productRepository = productRepository;
         this.paymentRepository = paymentRepository;
+        this.shipmentRepository = shipmentRepository;
     }
 
 
@@ -112,5 +114,19 @@ public class AdminService {
 
     public void deleteAllPayments() {
         paymentRepository.deleteAll();
+    }
+
+    @Transactional
+    public void deleteAllOrders () {
+        List<Order> orders = orderRepository.findAll();
+        for (Order order : orders) {
+            if(order.getPayment() != null) {
+                paymentRepository.deleteById(order.getPayment().getId());
+            }
+            if(order.getShipment() != null) {
+                shipmentRepository.deleteById(order.getShipment().getId());
+            }
+        }
+        orderRepository.deleteAll();
     }
 }

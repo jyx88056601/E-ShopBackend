@@ -1,10 +1,14 @@
 package com.jyx.eshopbackend.presentation;
 
 import com.jyx.eshopbackend.aws.S3Service;
-import com.jyx.eshopbackend.dto.ProductUpLoadingResponseDTO;
-import com.jyx.eshopbackend.dto.ProductUploadDTO;
+import com.jyx.eshopbackend.dto.*;
+import com.jyx.eshopbackend.service.OrderService;
 import com.jyx.eshopbackend.service.ProductService;
+import com.jyx.eshopbackend.service.ShipmentService;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,22 +30,29 @@ public class BusinessController {
 
     private final ProductService productService;
 
+    private final OrderService orderService;
 
-    public BusinessController(S3Service s3Service, ProductService productService) {
+    private final PagedResourcesAssembler<OrderResponseDTO> pagedResourcesAssembler;
+
+    private final ShipmentService shipmentService;
+
+
+    public BusinessController(S3Service s3Service, ProductService productService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> pagedResourcesAssembler, ShipmentService shipmentService) {
         this.s3Service = s3Service;
         this.productService = productService;
+        this.orderService = orderService;
+        this.pagedResourcesAssembler = pagedResourcesAssembler;
+        this.shipmentService = shipmentService;
     }
 
     @GetMapping("/findProductsByOwner{id}")
     public ResponseEntity<Object> displayAllProducts(@PathVariable String id,@RequestParam String page,@RequestParam String size) {
         logger.info("request from frontend to current port with BusinessController.displayAllProducts()");
         logger.info("request is findProductsByOwner" + id);
-        try {
-            productService.findProductsByOwnerId(id, page, size);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(productService.findProductsByOwnerId(id,page, size));
+
+        var product = productService.findProductsByOwnerId(id,page, size);
+    return  ResponseEntity.status(HttpStatus.OK).body(product);
+
     }
 
     @PostMapping("/uploadingBy{id}")
@@ -88,4 +99,43 @@ public class BusinessController {
        return  ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
+      @GetMapping("/fetchOrdersByMerchantId/{merchantId}")
+      public ResponseEntity<Object> fetchOrdersById(@PathVariable String merchantId,  @RequestParam String page, @RequestParam String size){
+        var orderResponseDTOS = orderService.fetchOrderByMerchantId(Long.parseLong(merchantId),  Integer.parseInt(page), Integer.parseInt(size));
+        PagedModel<EntityModel<OrderResponseDTO>> pagedModel = pagedResourcesAssembler.toModel(orderResponseDTOS);
+        return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
+    }
+
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<Object> fetchOrderDetail(@PathVariable String orderId) {
+        logger.info("GET:/order/"+orderId);
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(orderService.fetchOrderDetails(orderId).get());
+        }
+        catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PutMapping("/delivery/order/{orderId}/addTrackingNumber")
+    public ResponseEntity<Object> addTrackingNumber(@PathVariable String orderId, @RequestBody TrackNumberDTO trackNumberDTO) {
+        UpdatingShipmentDTO updatingShipmentDTO;
+        try {
+           updatingShipmentDTO = shipmentService.addTrackingNumber(orderId, trackNumberDTO);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(updatingShipmentDTO);
+    }
+
+
+    @GetMapping("/delivery/shipment/{orderId}")
+    public ResponseEntity<Object> fetchShipment(@PathVariable String orderId) {
+      try {
+         return ResponseEntity.status(HttpStatus.OK).body(shipmentService.findShipmentByOrderId(orderId));
+      } catch (Exception e) {
+          System.out.println("!");
+          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+      }
+    }
 }

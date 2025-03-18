@@ -142,4 +142,14 @@ public class OrderService {
     public void updateOrder(Order order) {
         orderRepository.save(order);
     }
+
+    public Page<OrderResponseDTO> fetchOrderByMerchantId(Long merchantId, int page, int size ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("orderCreatedTime")));
+        Page<Order> orderPage = orderRepository.findByMerchantId(merchantId,pageable);
+        return orderPage.map(OrderResponseDTO::new);
+    }
+
+    public void clearOrders() {
+        orderRepository.deleteAll();
+    }
 }

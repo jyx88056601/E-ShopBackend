@@ -6,6 +6,7 @@ import com.jyx.eshopbackend.model.CartItem;
 import com.jyx.eshopbackend.model.Payment;
 import com.jyx.eshopbackend.persistence.UserRepository;
 import com.jyx.eshopbackend.service.*;
+import com.jyx.eshopbackend.stripe.StripeService;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.web.PagedResourcesAssembler;
@@ -42,9 +43,11 @@ public class PersonalController {
     public final ShipmentService shipmentService;
     private final UserRepository userRepository;
 
+    private final StripeService stripeService;
+
 
     public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> OrderPageAssembler, PagedResourcesAssembler<ProductDetailDTO> productDetailPageAssembler , PaymentService paymentService, AddressService addressService, ShipmentService shipmentService,
-                              UserRepository userRepository) {
+                              UserRepository userRepository, StripeService stripeService) {
         this.productService = productService;
         this.cartService = cartService;
         this.orderService = orderService;
@@ -54,6 +57,7 @@ public class PersonalController {
         this.addressService = addressService;
         this.shipmentService = shipmentService;
         this.userRepository = userRepository;
+        this.stripeService = stripeService;
     }
 
     @GetMapping("/products")
@@ -265,8 +269,6 @@ public class PersonalController {
        try {
            return ResponseEntity.status(HttpStatus.OK).body(shipmentService.InitializeShipment(Long.parseLong(shipmentRequestDTO.getAddressId()), shipmentRequestDTO.getOrderId()));
        } catch (Exception e) {
-           System.out.println(e.getMessage());
-           System.out.println(e.getCause());
            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
        }
     }
@@ -280,5 +282,29 @@ public class PersonalController {
        var seller = sellerOptional.get();
        String response = seller.getUsername() + "#" + seller.getPhoneNumber() + "#" + seller.getEmail();
        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
+    @PostMapping("/create-checkout-session")
+    public ResponseEntity<Map<String, String>> createCheckoutSession(@RequestBody StripeRequestDTO stripeRequestDTO) {
+        try {
+            Map<String, String> response =  paymentService.initializeStripePayment(stripeRequestDTO.getOrderId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @GetMapping("/session-status")
+    public ResponseEntity<Map<String, String>> getSessionStatus(@RequestParam("session_id") String session_Id, @RequestParam String orderId) {
+        logger.info("GET:/session-status");
+        logger.info(session_Id);
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(stripeService.getSessionStatus(session_Id, orderId));
+        } catch (Exception e) {
+            Map<String,String> map = new HashMap<>();
+            map.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
+        }
     }
 }

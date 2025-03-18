@@ -130,5 +130,11 @@ public class AdminController {
        return ResponseEntity.ok("all payments have been deleted");
     }
 
+    @DeleteMapping("/delete-all-orders")
+    public ResponseEntity<String> deleteAllOrders() {
+        adminService.deleteAllOrders();
+        return ResponseEntity.ok("all orders have been deleted");
+    }
+
 
 }

@@ -17,4 +17,5 @@ public class PageAssemblerConfig {
     public PagedResourcesAssembler<ProductDetailDTO> productDetailPageAssembler() {
         return new PagedResourcesAssembler<>(null, null);
     }
+
 }
