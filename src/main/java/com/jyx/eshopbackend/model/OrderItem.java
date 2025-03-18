@@ -18,7 +18,7 @@ public class OrderItem {
     @JsonBackReference
     private Order order;
 
-    @Column(nullable = false)
+    @Column
     private Long productId;
 
     @Column(nullable = false)

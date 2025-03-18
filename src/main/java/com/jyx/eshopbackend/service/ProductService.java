@@ -7,6 +7,7 @@ import com.jyx.eshopbackend.dto.ProductUploadDTO;
 import com.jyx.eshopbackend.model.Product;
 import com.jyx.eshopbackend.model.ProductImage;
 import com.jyx.eshopbackend.model.User;
+import com.jyx.eshopbackend.persistence.CartItemRepository;
 import com.jyx.eshopbackend.persistence.ProductImageRepository;
 import com.jyx.eshopbackend.persistence.ProductRepository;
 import com.jyx.eshopbackend.persistence.UserRepository;
@@ -27,18 +28,20 @@ public class ProductService {
     private final UserService userService;
     private final S3Service s3Service;
     private final UserRepository userRepository;
-
+    private final CartItemRepository cartItemRepository;
 
 
     // Constructor to inject dependencies
     public ProductService(ProductRepository productRepository, ProductImageRepository productImageRepository,
                           UserService userService, S3Service s3Service,
-                          UserRepository userRepository) {
+                          UserRepository userRepository,
+                          CartItemRepository cartItemRepository) {
         this.productRepository = productRepository;
         this.productImageRepository = productImageRepository;
         this.userService = userService;
         this.s3Service = s3Service;
         this.userRepository = userRepository;
+        this.cartItemRepository = cartItemRepository;
     }
 
     // Find products by ownerId
@@ -128,6 +131,8 @@ public class ProductService {
            String fileName = url.split("amazonaws.com/")[1];
            sb.append(s3Service.removeFile(fileName)); // Remove file from S3
        }
+
+
 
        // Delete product from MySQL database
        productRepository.deleteById(productId);
