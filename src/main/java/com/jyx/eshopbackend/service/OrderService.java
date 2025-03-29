@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -42,7 +43,7 @@ public class OrderService {
         this.paymentRepository = paymentRepository;
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Optional<OrderResponseDTO> createOrder(String customerId, String merchantId, OrderRequestDTO orderRequestDTO)   {
         Order order = new Order();
         order.setOrderNumber(customerId + "-" + LocalDateTime.now() + "-" + merchantId);

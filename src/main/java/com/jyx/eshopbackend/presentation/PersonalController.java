@@ -1,5 +1,6 @@
 package com.jyx.eshopbackend.presentation;
 
+import com.jyx.eshopbackend.cache.ProductRedisService;
 import com.jyx.eshopbackend.dto.*;
 import com.jyx.eshopbackend.model.Cart;
 import com.jyx.eshopbackend.model.CartItem;
@@ -45,9 +46,11 @@ public class PersonalController {
 
     private final StripeService stripeService;
 
+    private final ProductRedisService productRedisService;
+
 
     public PersonalController(ProductService productService, CartService cartService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> OrderPageAssembler, PagedResourcesAssembler<ProductDetailDTO> productDetailPageAssembler , PaymentService paymentService, AddressService addressService, ShipmentService shipmentService,
-                              UserRepository userRepository, StripeService stripeService) {
+                              UserRepository userRepository, StripeService stripeService, ProductRedisService productRedisService) {
         this.productService = productService;
         this.cartService = cartService;
         this.orderService = orderService;
@@ -58,6 +61,7 @@ public class PersonalController {
         this.shipmentService = shipmentService;
         this.userRepository = userRepository;
         this.stripeService = stripeService;
+        this.productRedisService = productRedisService;
     }
 
     @GetMapping("/products")
@@ -71,6 +75,9 @@ public class PersonalController {
             logger.warn("Catch Exception while fetching data from database");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
+            for(var productDetail : productPage) {
+                productRedisService.saveProductDetails(productDetail.getId(),productDetail);
+            }
         PagedModel<EntityModel<ProductDetailDTO>> pagedModel = productDetailPageAssembler.toModel(productPage);
         return ResponseEntity.status(HttpStatus.OK).body(pagedModel);
     }
@@ -79,6 +86,10 @@ public class PersonalController {
     public ResponseEntity<Object> findProductById (@PathVariable String id){
         logger.info("PersonalController.findProductById()");
         logger.info("GET:/personal/product/" + id);
+        var cacheResult = productRedisService.getProductDetails(id);
+        if (cacheResult != null) {
+            return ResponseEntity.status(HttpStatus.OK).body(cacheResult);
+        }
         Optional<ProductDetailDTO> productDetailDTO;
         try {
             productDetailDTO = productService.findProductDetailById(Long.parseLong(id));

@@ -1,6 +1,7 @@
 package com.jyx.eshopbackend.presentation;
 
 import com.jyx.eshopbackend.aws.S3Service;
+import com.jyx.eshopbackend.cache.ProductRedisService;
 import com.jyx.eshopbackend.dto.*;
 import com.jyx.eshopbackend.service.OrderService;
 import com.jyx.eshopbackend.service.ProductService;
@@ -36,20 +37,22 @@ public class BusinessController {
 
     private final ShipmentService shipmentService;
 
+    private final ProductRedisService productRedisService;
 
-    public BusinessController(S3Service s3Service, ProductService productService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> pagedResourcesAssembler, ShipmentService shipmentService) {
+
+    public BusinessController(S3Service s3Service, ProductService productService, OrderService orderService, PagedResourcesAssembler<OrderResponseDTO> pagedResourcesAssembler, ShipmentService shipmentService, ProductRedisService productRedisService) {
         this.s3Service = s3Service;
         this.productService = productService;
         this.orderService = orderService;
         this.pagedResourcesAssembler = pagedResourcesAssembler;
         this.shipmentService = shipmentService;
+        this.productRedisService = productRedisService;
     }
 
     @GetMapping("/findProductsByOwner{id}")
     public ResponseEntity<Object> displayAllProducts(@PathVariable String id,@RequestParam String page,@RequestParam String size) {
         logger.info("request from frontend to current port with BusinessController.displayAllProducts()");
         logger.info("request is findProductsByOwner" + id);
-
         var product = productService.findProductsByOwnerId(id,page, size);
     return  ResponseEntity.status(HttpStatus.OK).body(product);
 
